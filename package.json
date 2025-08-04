@@ -10,10 +10,15 @@
   },
   "dependencies": {
     "@google/genai": "^1.12.0",
+    "@google/generative-ai": "^0.24.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "formidable": "^3.5.4",
     "lucide-react": "^0.536.0",
+    "mammoth": "^1.9.1",
     "next": "15.4.5",
+    "pdf-parse": "^1.1.1",
+    "pptx-parser": "^1.1.7-beta.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.1"
