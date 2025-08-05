@@ -6,31 +6,56 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { fileUrl, quizStyle, difficulty, numberOfItems, types } = body;
+    const {
+      fileUrl,
+      textContent,
+      quizStyle,
+      difficulty,
+      numberOfItems,
+      types,
+    } = body;
 
-    if (!fileUrl || !types || !difficulty || !numberOfItems || !quizStyle) {
+    if (
+      (!fileUrl && !textContent) ||
+      !types ||
+      !difficulty ||
+      !numberOfItems ||
+      !quizStyle
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Fetch and convert file to base64
-    const fileResponse = await fetch(fileUrl);
-    const fileBuffer = await fileResponse.arrayBuffer();
-    const base64Pdf = Buffer.from(fileBuffer).toString("base64");
+    let contentPart;
 
+    if (fileUrl) {
+      // Fetch and convert file to base64
+      const fileResponse = await fetch(fileUrl);
+      const fileBuffer = await fileResponse.arrayBuffer();
+      const base64Pdf = Buffer.from(fileBuffer).toString("base64");
+
+      contentPart = {
+        inlineData: {
+          mimeType: "application/pdf",
+          data: base64Pdf,
+        },
+      };
+    } else {
+      contentPart = {
+        text: textContent,
+      };
+    }
     // Format quiz prompt
     const typeBreakdown = types
-      .map(
-        (t: { type: string; percentage: number }) =>
-          `${t.percentage}% ${t.type}`
-      )
+      .map((t: { type: string; count: number }) => `${t.count} ${t.type}`)
       .join(", ");
 
-    const prompt = `Create a ${quizStyle.toLowerCase()} quiz from the PDF with ${numberOfItems} questions. 
-Use ${typeBreakdown}. Difficulty should be ${difficulty.toLowerCase()}. 
-Provide only the questions and answers in JSON.`;
+    const prompt = `Create a ${quizStyle.toLowerCase()} quiz with exactly ${numberOfItems} questions from the content. 
+Distribute the questions as follows: ${typeBreakdown}. 
+Difficulty should be ${difficulty.toLowerCase()}. 
+Return only the questions and answers in JSON format.`;
 
     // Define dynamic schema
     let schemaProperties: any = {};
@@ -88,17 +113,7 @@ Provide only the questions and answers in JSON.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: [
-        {
-          inlineData: {
-            mimeType: "application/pdf",
-            data: base64Pdf,
-          },
-        },
-        {
-          text: prompt,
-        },
-      ],
+      contents: [contentPart, { text: prompt }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
