@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Label } from "./ui/label";
 
 const QuizLanguage = () => {
-  const languages = ["🇺🇸 English NIGGA", "Spanish", "French", "German"];
+  const languages = ["🇺🇸 English", "Spanish", "French", "German"];
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
 
   return (

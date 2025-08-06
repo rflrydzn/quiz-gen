@@ -1,5 +1,5 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
-
+import LoginButton from "./LoginLogoutButton";
 import {
   Sidebar,
   SidebarContent,
@@ -62,6 +62,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <LoginButton />
     </Sidebar>
   );
 }

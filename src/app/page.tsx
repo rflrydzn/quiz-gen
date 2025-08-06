@@ -2,10 +2,12 @@ import Image from "next/image";
 import MainUI from "@/components/main";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import LoginButton from "@/components/LoginLogoutButton";
 export default function Home() {
   return (
     <div className="w-full">
       <Header />
+      <LoginButton />
       <MainUI />
       <Footer />
     </div>
