@@ -2,12 +2,37 @@
 import { useState, useEffect } from "react";
 import { Toggle } from "./ui/toggle";
 import { Label } from "./ui/label";
+
+const allowedTypesByStyle: Record<string, string[]> = {
+  "Exam Style": [
+    "Multiple Choice",
+    "True/False",
+    "Open-Ended",
+    "Fill in the Blank",
+  ],
+  Flashcard: [
+    "Term and Definition",
+    "Definition and Term",
+    "Fill in the Blank",
+    "True/False",
+  ],
+  "Practice Mode": [
+    "Multiple Choice",
+    "True/False",
+    "Open-Ended",
+    "Fill in the Blank",
+  ], // same as Exam
+};
+
 const QuestionType = ({
+  quizStyle,
   onSelectedQuestionType,
 }: {
+  quizStyle: string;
   onSelectedQuestionType: (selected: string[]) => void;
 }) => {
   const [selected, setSelected] = useState<string[]>([]);
+  const allowedTypes = allowedTypesByStyle[quizStyle] || [];
 
   const toggleOption = (value: string) => {
     setSelected((prev) =>
@@ -20,9 +45,17 @@ const QuestionType = ({
     "True/False",
     "Fill in the Blank",
     "Open-Ended",
+    "Term and Definition",
+    "Definition and Term",
   ];
 
+  // When quizStyle changes, drop any types that are not allowed
+  useEffect(() => {
+    setSelected((prev) => prev.filter((type) => allowedTypes.includes(type)));
+  }, [quizStyle]);
+
   useEffect(() => onSelectedQuestionType(selected), [selected]);
+
   return (
     <div>
       <Label>Question Type</Label>
@@ -33,6 +66,7 @@ const QuestionType = ({
           pressed={selected.includes(option)}
           onPressedChange={() => toggleOption(option)}
           className="px-4 py-2 text-sm rounded-2xl"
+          disabled={!allowedTypes.includes(option)}
         >
           {option}
         </Toggle>

@@ -62,7 +62,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <LoginButton />
     </Sidebar>
   );
 }

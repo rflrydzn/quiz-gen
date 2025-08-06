@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="w-full">
       <Header />
-      <LoginButton />
+
       <MainUI />
       <Footer />
     </div>

@@ -52,7 +52,14 @@ export async function POST(req: Request) {
       .map((t: { type: string; count: number }) => `${t.count} ${t.type}`)
       .join(", ");
 
-    const prompt = `Create a ${quizStyle.toLowerCase()} quiz with exactly ${numberOfItems} questions from the content. 
+    const prompt =
+      quizStyle === "Practice Mode"
+        ? `Create a practice mode quiz with exactly ${numberOfItems} questions from the content. 
+Distribute the questions as follows: ${typeBreakdown}. 
+Difficulty should be ${difficulty.toLowerCase()}. 
+Each question must include: question text, type, difficulty, choices, correct answer, a hint, and an explanation. 
+Return the result strictly in JSON matching the schema.`
+        : `Create a ${quizStyle.toLowerCase()} quiz with exactly ${numberOfItems} questions from the content. 
 Distribute the questions as follows: ${typeBreakdown}. 
 Difficulty should be ${difficulty.toLowerCase()}. 
 Return only the questions and answers in JSON format.`;
@@ -61,14 +68,14 @@ Return only the questions and answers in JSON format.`;
     let schemaProperties: any = {};
     let propertyOrdering: string[] = [];
 
-    if (quizStyle === "flashcard") {
+    if (quizStyle === "Flashcard") {
       schemaProperties = {
         type: { type: Type.STRING },
         front: { type: Type.STRING },
         back: { type: Type.STRING },
       };
       propertyOrdering = ["type", "front", "back"];
-    } else if (quizStyle === "practice") {
+    } else if (quizStyle === "Practice Mode") {
       schemaProperties = {
         question: { type: Type.STRING },
         type: { type: Type.STRING },
