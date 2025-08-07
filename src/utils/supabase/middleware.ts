@@ -54,7 +54,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+
+  const isLoggedIn = !!data.user;
+
+  if (!isLoggedIn && request.nextUrl.pathname === "/") {
+    // 👇 redirect to login if user is not authenticated
+    return NextResponse.redirect(new URL("/landing-page", request.url));
+  }
 
   return response;
 }
