@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { createClient } from "@/app/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import ExamQuizUI from "@/components/quiz/ExamQuizUI";
 // import FlashcardUI from "@/components/quiz/FlashcardUI";

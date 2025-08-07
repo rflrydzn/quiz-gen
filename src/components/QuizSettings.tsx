@@ -7,7 +7,7 @@ import QuestionDifficultySelector from "./QuizDifficultySelector";
 import QuizStyle from "./QuizStyle";
 import QuizLanguage from "./QuizLanguage";
 import { Button } from "./ui/button";
-import { createClient } from "@/app/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 
 type QuizOptions = {
   questionCounts: number;
