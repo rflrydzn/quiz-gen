@@ -1,24 +1,22 @@
 "use client";
 import Quiz from "./Quiz";
 import QuizSettings from "./QuizSettings";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import QuizRenderer from "./quizRenderer";
 const MainUI = () => {
-  const [quizData, setQuizData] = React.useState<any>(null);
+  const [quizId, setQuizId] = useState<any>(null);
+  useEffect(() => console.log("quiz id received from main", quizId), []);
   return (
     <div className="flex">
       <div className="w-1/3">
-        <QuizSettings onGenerate={(data) => setQuizData(data)} />
+        <QuizSettings onGenerate={(data) => setQuizId(data)} />
       </div>
 
       <div className="w-3/4">
-        <Quiz />
-        {quizData && (
-          <div className="border-2 p-4 mt-4">
-            <h2 className="text-lg font-bold mb-2">Generated Quiz</h2>
-            <pre className="whitespace-pre-wrap">
-              {JSON.stringify(quizData, null, 2)}
-            </pre>
-          </div>
+        {quizId ? (
+          <QuizRenderer quizId={quizId} />
+        ) : (
+          <p className="text-gray-500">Generate a quiz to see it here.</p>
         )}
       </div>
     </div>

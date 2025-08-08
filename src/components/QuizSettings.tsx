@@ -66,7 +66,6 @@ const QuizSettings = ({ onGenerate }: { onGenerate: (data: any) => void }) => {
     console.log("Quiz generated successfully");
     const data = await res.json();
     console.log("Quiz data:", data);
-    onGenerate(data);
 
     // 2. Save quiz metadata in Supabase
     const { data: quiz, error: quizError } = await supabase
@@ -88,6 +87,7 @@ const QuizSettings = ({ onGenerate }: { onGenerate: (data: any) => void }) => {
     }
 
     console.log("Quiz saved successfully:", quiz);
+    onGenerate(quiz.id);
 
     // 3. Format and save questions using quiz.id
     const formattedQuestions = data.map((q: any) => ({

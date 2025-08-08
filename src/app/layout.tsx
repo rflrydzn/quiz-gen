@@ -35,7 +35,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryClientProvider client={queryClient}>
-          <SidebarProvider defaultOpen={false}>
+          <SidebarProvider>
             <AppSidebar />
             <main className="flex-1">
               {/* <SidebarTrigger /> */}
