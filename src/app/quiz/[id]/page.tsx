@@ -10,7 +10,6 @@ import QuizRenderer from "@/components/quizRenderer";
 
 export default function QuizPage() {
   const { id } = useParams<{ id: string }>();
-  console.log("id param:", id);
   if (!id) return <p>Missing ID</p>;
 
   return <QuizRenderer quizId={id} />;

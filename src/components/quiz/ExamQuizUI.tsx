@@ -1,10 +1,11 @@
 "use client";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
 type quiz = {
   id: string;
   user_id: string;
@@ -14,6 +15,7 @@ type quiz = {
   source_file_url?: string;
   source_text?: string;
   style: string;
+  status: string;
 };
 
 type question = {
@@ -30,6 +32,9 @@ type question = {
   question: string;
   type: string;
 };
+
+const supabase = createClient();
+
 export default function ExamQuizUI({
   quiz,
   questions,
@@ -37,22 +42,78 @@ export default function ExamQuizUI({
   quiz: quiz;
   questions: question[];
 }) {
+  useEffect(() => {
+    const loadSavedAnswers = async () => {
+      const { data, error } = await supabase
+        .from("quiz_answers")
+        .select("*")
+        .eq("quiz_id", quiz.id)
+        .eq("user_id", quiz.user_id);
+
+      if (error) {
+        console.error("Error loading saved answers", error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const savedUserAnswers: { [key: string]: string } = {};
+        const savedFeedback: {
+          [questionId: string]: { criteria: string; grade: number };
+        } = {};
+
+        let scoreSum = 0;
+
+        for (const answer of data) {
+          if (answer.submitted_text !== null) {
+            savedUserAnswers[answer.question_id] = answer.submitted_text;
+          } else if (answer.selected_choice !== null) {
+            savedUserAnswers[answer.question_id] = answer.selected_choice;
+          }
+
+          if (answer.ai_feedback) {
+            savedFeedback[answer.question_id] = {
+              criteria: answer.ai_feedback,
+              grade: answer.score ?? 0,
+            };
+          }
+
+          scoreSum += answer.score ?? 0;
+        }
+
+        setUserAnswers(savedUserAnswers);
+        setAIFeedback(savedFeedback);
+        setScore({
+          score: scoreSum,
+          totalItems: quiz.number_of_items,
+        });
+        isSubmitted(true);
+      }
+    };
+
+    loadSavedAnswers();
+  }, [quiz.id, quiz.user_id]);
+
   const [userAnswers, setUserAnswers] = useState<{
     [questionId: string]: string;
   }>({});
   const [correctAnswers, setCorrectAnswers] = useState<any>([]);
+  const [quizStatus, setQuizStatus] = useState<string>("");
   const [submitted, isSubmitted] = useState(false);
   const [score, setScore] = useState<{
     score: number;
     totalItems: number;
   }>();
   const [aiFeedback, setAIFeedback] = useState<{
-    [questionId: string]: string;
+    [questionId: string]: {
+      criteria: string;
+      grade: number;
+    };
   }>({});
 
   const inputRef = useRef<HTMLInputElement>(null);
   console.log("quiz types", quiz);
   console.log("questions types", questions);
+
   useEffect(() => {
     const answers = questions.map((q) => q.answer);
     setCorrectAnswers(answers);
@@ -64,22 +125,74 @@ export default function ExamQuizUI({
 
   const handleSubmitScore = async () => {
     let calculatedScore = 0;
+    const newAIFeedback: {
+      [questionId: string]: {
+        criteria: string;
+        grade: number;
+      };
+    } = {};
 
-    const aiGrading = questions.map(async (q) => {
-      isSubmitted(true);
+    isSubmitted(true);
+
+    // Grade all questions
+    const gradingPromises = questions.map(async (q) => {
+      const userAnswer = userAnswers[q.id];
+
       if (q.type === "Open-Ended") {
         const res = await getAIGradedScore(q);
-        calculatedScore += res?.grade;
+        calculatedScore += res?.grade || 0;
+
+        newAIFeedback[q.id] = {
+          criteria: res?.criteria,
+          grade: res?.grade,
+        };
       } else {
-        if (userAnswers[q.id] === q.answer) {
+        if (userAnswer === q.answer) {
           calculatedScore += 1;
         }
       }
     });
 
-    await Promise.all(aiGrading);
+    await Promise.all(gradingPromises);
 
+    setAIFeedback(newAIFeedback);
     setScore({ score: calculatedScore, totalItems: quiz.number_of_items });
+
+    // Now safe to save to DB
+    const responses = questions.map((q) => ({
+      quiz_id: quiz.id,
+      question_id: q.id,
+      user_id: quiz.user_id,
+      selected_choice: q.type === "Multiple Choice" ? userAnswers[q.id] : null,
+      submitted_text: q.type === "Open-Ended" ? userAnswers[q.id] : null,
+      ai_feedback:
+        q.type === "Open-Ended" ? newAIFeedback[q.id]?.criteria : null,
+      score:
+        q.type === "Open-Ended"
+          ? newAIFeedback[q.id]?.grade
+          : q.answer === userAnswers[q.id]
+          ? 1
+          : 0,
+    }));
+
+    // You can now POST `responses` to your backend
+    const supabase = createClient();
+    const { error } = await supabase.from("quiz_answers").insert(responses);
+    if (error) {
+      console.error("Error saving to db", error);
+    } else {
+      console.log("Saved to db");
+    }
+
+    const { error: statusError } = await supabase
+      .from("quizzes")
+      .update({ status: "taken" })
+      .eq("id", quiz.id);
+    if (statusError) {
+      console.error("Error updating quiz status");
+    } else {
+      ("Marked quiz as taken");
+    }
   };
 
   const getAIGradedScore = async (q: any) => {
@@ -98,8 +211,14 @@ export default function ExamQuizUI({
       return;
     }
     const data = await res.json();
-    setAIFeedback((prev) => ({ ...prev, [q.id]: data?.criteria }));
-    console.log("dataaa", data);
+    setAIFeedback((prev) => ({
+      ...prev,
+      [q.id]: {
+        criteria: data?.criteria,
+        grade: data?.grade,
+      },
+    }));
+
     return data;
   };
 
@@ -155,6 +274,7 @@ export default function ExamQuizUI({
           {q.type === "Open-Ended" && (
             <div className="grid w-full gap-3">
               <Textarea
+                disabled={quiz.status === "taken"}
                 placeholder="Type your message here."
                 id={q.id}
                 value={userAnswers[q.id] || ""}
@@ -166,13 +286,15 @@ export default function ExamQuizUI({
                 }
               />
               <p className="text-muted-foreground text-sm">
-                {aiFeedback[q.id] ?? "Your answer will be graded by AI."}
+                {aiFeedback[q.id]?.grade ?? "Your answer will be graded by AI."}
               </p>
             </div>
           )}
         </div>
       ))}
-      <Button onClick={handleSubmitScore}>Submit</Button>
+      <Button onClick={handleSubmitScore} hidden={submitted}>
+        Submit
+      </Button>
     </div>
   );
 }

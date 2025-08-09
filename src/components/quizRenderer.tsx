@@ -35,7 +35,6 @@ export default function QuizRenderer({ quizId }: { quizId: string }) {
   if (!data) return <p>Quiz not found</p>;
 
   const { quiz, questions } = data;
-  console.log("got the data from renderer", quiz, questions);
 
   switch (quiz.style) {
     case "Exam Style":

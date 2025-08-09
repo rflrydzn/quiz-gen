@@ -11,6 +11,7 @@ type Quiz = {
   difficulty: string;
   number_of_items: number;
   created_at: string;
+  status: string;
 };
 
 export default function MyQuizzes() {
@@ -65,6 +66,7 @@ export default function MyQuizzes() {
               <p className="text-xs text-gray-500">
                 Created: {new Date(quiz.created_at).toLocaleString()}
               </p>
+              <p>{quiz.status === "taken" ? "Taken" : "Not Taken"}</p>
             </div>
             <Button variant="outline">Open</Button>
           </div>
