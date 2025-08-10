@@ -2,7 +2,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import ExamQuizUI from "@/components/quiz/ExamQuizUI";
-// import FlashcardUI from "@/components/quiz/FlashcardUI";
+import FlashcardUI from "@/components/quiz/FlashcardUI";
 // import PracticeQuizUI from "@/components/quiz/PracticeQuizUI";
 
 const supabase = createClient();
@@ -39,8 +39,8 @@ export default function QuizRenderer({ quizId }: { quizId: string }) {
   switch (quiz.style) {
     case "Exam Style":
       return <ExamQuizUI quiz={quiz} questions={questions} />;
-    // case "Flashcard":
-    //   return <FlashcardUI quiz={quiz} questions={questions} />;
+    case "Flashcard":
+      return <FlashcardUI quiz={quiz} questions={questions} />;
     // case "Practice Mode":
     //   return <PracticeQuizUI quiz={quiz} questions={questions} />;
     default:
