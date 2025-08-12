@@ -16,6 +16,7 @@ interface SummaryProps {
   knownQuestions: { [questionId: string]: string };
   questions: question[];
   onRetake: any;
+  onRestart: any;
   totalQuestions: number;
 }
 
@@ -24,6 +25,7 @@ const Summary: React.FC<SummaryProps> = ({
   knownQuestions,
   questions,
   onRetake,
+  onRestart,
   totalQuestions,
 }) => {
   const total = totalQuestions;
@@ -166,7 +168,7 @@ const Summary: React.FC<SummaryProps> = ({
             </Button>
           </div>
           <div>
-            <Button variant="link" className="">
+            <Button variant="link" className="" onClick={onRestart}>
               <RotateCcw />
               Restart Flashcards
             </Button>

@@ -99,6 +99,13 @@ export default function FlashcardUI({
     setCurrentIndex(0);
   };
 
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setKnownQuestions({});
+    setUnknownQuestions({});
+    setShowSummary(false);
+    console.log("restart triggered");
+  };
   return (
     <>
       {!showSummary && (
@@ -157,6 +164,7 @@ export default function FlashcardUI({
           knownQuestions={knownQuestions}
           progressMode={progressMode}
           onRetake={handleRetake}
+          onRestart={handleRestart}
         />
       )}
     </>

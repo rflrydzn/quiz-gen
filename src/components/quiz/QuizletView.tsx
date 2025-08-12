@@ -5,7 +5,7 @@ import { quiz, question, QuizletViewProps } from "@/types/types";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from "lucide-react";
 import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import { Progress } from "../ui/progress";
 import { Button } from "@/components/ui/button";
@@ -29,11 +29,14 @@ function QuizletView({
   knownQuestions,
   progressMode,
   onRetake,
+  onRestart,
+
   totalQuestions,
 }: QuizletViewProps) {
   const [flipped, setFlipped] = useState(false);
   const currentQuestion = questions[currentIndex];
   const [showSummaryQuizlet, setShowSummaryQuizlet] = useState(false);
+  const [totalAnsweredRound, setTotalAnsweredRound] = useState(0);
   const handleKnown = () => {
     onMarkKnown(currentQuestion.id);
     nextCard();
@@ -56,6 +59,7 @@ function QuizletView({
         questions={questions}
         onRetake={onRetake}
         totalQuestions={totalQuestions}
+        onRestart={onRestart}
       />
     );
   if (!currentQuestion) return null;
@@ -67,8 +71,28 @@ function QuizletView({
         <span className="block text-sm text-gray-600 mb-2">
           {currentIndex + 1} of {questions.length}
         </span>
+
         <Progress value={((currentIndex + 1) / questions.length) * 100} />
       </div>
+
+      {progressMode && (
+        <div className="flex justify-between w-full mb-8 ">
+          <div className="flex justify-center items-center gap-2">
+            <h4 className="scroll-m-20 text-xl  tracking-tight border-1 rounded-2xl p-1 px-4 ">
+              {Object.keys(knownQuestions).length}
+            </h4>
+            <h4 className="scroll-m-20 text-xl  tracking-tight">Known</h4>
+          </div>
+
+          <div className="flex justify-center items-center gap-2">
+            <h4 className="scroll-m-20 text-xl  tracking-tight">Unknown</h4>
+            <h4 className="scroll-m-20 text-xl  tracking-tight border-1 rounded-2xl p-1 px-4 ">
+              {Object.keys(unknownQuestions).length}
+            </h4>
+          </div>
+        </div>
+      )}
+
       {/* Main card */}
       <div className="w-full max-w-2xl h-96 mb-10">
         <motion.div
@@ -116,90 +140,113 @@ function QuizletView({
       </div>
       {/* Navigation */}
 
-      {progressMode ? (
-        <div className="flex justify-between items-center max-w-md gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={handleKnown}>
-                <Check />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mark as known</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button>
-                <Plus />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add a Card</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={handleUnknown}>
-                <X />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mark as unknown</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      ) : (
-        <div className="flex justify-between items-center max-w-md gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={prevCard} disabled={currentIndex === 0}>
-                <ChevronLeft />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Previous</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button>
-                <Plus />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add a Card</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={nextCard}
-                disabled={currentIndex == questions.length - 1}
-              >
-                <ChevronRight />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Next</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      )}
-      <div className="flex items-center justify-center gap-5">
-        <div className="flex items-center justify-center m-2">
+      <div className="relative w-full max-w-2xl mx-auto flex items-center ">
+        {/* Left corner: Switch */}
+        <div className="absolute left-0 flex items-center gap-2">
           <Switch
             checked={progressMode}
-            onCheckedChange={() => {
-              onProgressMode();
-            }}
+            onCheckedChange={() => onProgressMode()}
           />
-          Track Progress
+          <span>Progress Mode</span>
         </div>
-        <div className="flex justify-center items-center">
-          <RotateCcw />
+
+        {/* Center: Main nav */}
+        <div className="mx-auto flex justify-center gap-2">
+          {progressMode ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleKnown}>
+                    <Check />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Mark as known</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button>
+                    <Plus />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a Card: Coming soon</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleUnknown}>
+                    <X />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Mark as unknown</p>
+                </TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={prevCard} disabled={currentIndex === 0}>
+                    <ChevronLeft />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Previous</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button>
+                    <Plus />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a Card: Coming soon</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={nextCard}
+                    disabled={currentIndex === questions.length - 1}
+                  >
+                    <ChevronRight />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Next</p>
+                </TooltipContent>
+              </Tooltip>
+            </>
+          )}
+        </div>
+
+        {/* Right corner: Restart */}
+        <div className="absolute right-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button onClick={onRestart} className="p-2 cursor-pointer">
+                <RotateCcw />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Restart</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="cursor-pointer">
+                <Shuffle />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Shuffle Cards</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
