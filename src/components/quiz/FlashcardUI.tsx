@@ -22,6 +22,7 @@ export default function FlashcardUI({
 
     return true;
   });
+  const [questionsForRound, setQuestionsForRound] = useState(questions);
 
   useEffect(() => {
     localStorage.setItem("flashcard-layout", JSON.stringify(verticalLayout));
@@ -39,6 +40,7 @@ export default function FlashcardUI({
   useEffect(() => {
     localStorage.setItem("flashcard-index", JSON.stringify(currentIndex));
   }, [currentIndex]);
+
   const nextCard = () => {
     setCurrentIndex((prev) => (prev + 1) % questions.length);
   };
@@ -70,12 +72,11 @@ export default function FlashcardUI({
     [questionID: string]: string;
   }>({});
 
-  useEffect(() => console.log("known questions: ", knownQuestions));
-  useEffect(() => console.log("unknown questions: ", unknownQuestions));
+  const totalQuestions = questions.length;
   const [unknownQuestions, setUnknownQuestions] = useState<{
     [questionID: string]: string;
   }>({});
-
+  useEffect(() => console.log("unknown questions: ", unknownQuestions));
   const [progressMode, setProgressMode] = useState(false);
 
   const [showSummary, setShowSummary] = useState(false);
@@ -90,6 +91,14 @@ export default function FlashcardUI({
       setShowSummary(false);
     }
   }, [knownQuestions, unknownQuestions, progressMode, questions.length]);
+
+  const handleRetake = () => {
+    const retakeList = questions.filter((q) => unknownQuestions[q.id]);
+    setQuestionsForRound(retakeList); // or however you're storing displayed questions
+    setUnknownQuestions({}); // start fresh for the new round
+    setCurrentIndex(0);
+  };
+
   return (
     <>
       {!showSummary && (
@@ -120,17 +129,23 @@ export default function FlashcardUI({
         </div>
       ) : (
         <QuizletView
-          questions={questions}
+          totalQuestions={totalQuestions}
+          questions={questionsForRound}
           currentIndex={currentIndex}
           nextCard={nextCard}
           prevCard={prevCard}
           onProgressMode={() => setProgressMode(!progressMode)}
-          onMarkKnown={(questionId) =>
+          onMarkKnown={(questionId) => {
             setKnownQuestions((prev) => ({
               ...prev,
               [questionId]: "known",
-            }))
-          }
+            }));
+            setUnknownQuestions((prev) => {
+              const copy = { ...prev };
+              delete copy[questionId];
+              return copy;
+            });
+          }}
           onMarkUnknown={(questionId) =>
             setUnknownQuestions((prev) => ({
               ...prev,
@@ -141,6 +156,7 @@ export default function FlashcardUI({
           unknownQuestions={unknownQuestions}
           knownQuestions={knownQuestions}
           progressMode={progressMode}
+          onRetake={handleRetake}
         />
       )}
     </>

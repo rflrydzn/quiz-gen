@@ -28,6 +28,8 @@ function QuizletView({
   unknownQuestions,
   knownQuestions,
   progressMode,
+  onRetake,
+  totalQuestions,
 }: QuizletViewProps) {
   const [flipped, setFlipped] = useState(false);
   const currentQuestion = questions[currentIndex];
@@ -52,6 +54,8 @@ function QuizletView({
         unknownQuestions={unknownQuestions}
         knownQuestions={knownQuestions}
         questions={questions}
+        onRetake={onRetake}
+        totalQuestions={totalQuestions}
       />
     );
   if (!currentQuestion) return null;

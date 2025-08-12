@@ -37,4 +37,6 @@ export interface QuizletViewProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
   progressMode: boolean;
+  onRetake: any;
+  totalQuestions: number;
 }

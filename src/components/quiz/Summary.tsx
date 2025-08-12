@@ -15,16 +15,21 @@ interface SummaryProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
   questions: question[];
+  onRetake: any;
+  totalQuestions: number;
 }
 
 const Summary: React.FC<SummaryProps> = ({
   unknownQuestions,
   knownQuestions,
   questions,
+  onRetake,
+  totalQuestions,
 }) => {
-  const total = questions.length;
+  const total = totalQuestions;
   const unknownCount = Object.keys(unknownQuestions).length;
   const knownCount = Object.keys(knownQuestions).length;
+  console.log({ knownCount, unknownCount, total });
 
   const knownPercentage = Math.floor((knownCount / total) * 100);
 
@@ -155,6 +160,7 @@ const Summary: React.FC<SummaryProps> = ({
             <Button
               className="w-full flex-1 rounded-4xl text-lg"
               variant="secondary"
+              onClick={onRetake}
             >
               Focus on {unknownCount} still learning card
             </Button>
