@@ -61,6 +61,7 @@ and remnants from its formation about 4.6 billion years ago.`;
         placeholder="Type your message here."
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        className="overflow-y-auto resize-none h-32"
       />
       <input
         type="file"

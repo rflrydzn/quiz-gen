@@ -5,6 +5,7 @@ import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
 import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import QuizletView from "./QuizletView";
+import { object } from "motion/react-client";
 
 export default function FlashcardUI({
   quiz,
@@ -65,19 +66,44 @@ export default function FlashcardUI({
       }
     }
   }, [verticalLayout, currentIndex]);
+  const [knownQuestions, setKnownQuestions] = useState<{
+    [questionID: string]: string;
+  }>({});
 
+  useEffect(() => console.log("known questions: ", knownQuestions));
+  useEffect(() => console.log("unknown questions: ", unknownQuestions));
+  const [unknownQuestions, setUnknownQuestions] = useState<{
+    [questionID: string]: string;
+  }>({});
+
+  const [progressMode, setProgressMode] = useState(false);
+
+  const [showSummary, setShowSummary] = useState(false);
+  useEffect(() => {
+    const knownCount = Object.keys(knownQuestions).length;
+    const unknownCount = Object.keys(unknownQuestions).length;
+
+    if (knownCount + unknownCount === questions.length && progressMode) {
+      setShowSummary(true);
+      console.log("showing summary");
+    } else {
+      setShowSummary(false);
+    }
+  }, [knownQuestions, unknownQuestions, progressMode, questions.length]);
   return (
     <>
-      <div className="fixed right-0 m-4 flex items-center gap-2 z-10">
-        <Label htmlFor="flashcard-layout">
-          {verticalLayout ? "Vertical" : "Horizontal"}
-        </Label>
-        <Switch
-          id="flashcard-layout"
-          checked={verticalLayout}
-          onCheckedChange={() => setVerticalLayout(!verticalLayout)}
-        />
-      </div>
+      {!showSummary && (
+        <div className="fixed right-0 m-4 flex items-center gap-2 z-10">
+          <Label htmlFor="flashcard-layout">
+            {verticalLayout ? "Vertical" : "Horizontal"}
+          </Label>
+          <Switch
+            id="flashcard-layout"
+            checked={verticalLayout}
+            onCheckedChange={() => setVerticalLayout(!verticalLayout)}
+          />
+        </div>
+      )}
 
       {verticalLayout ? (
         <div className="mx-auto my-24 max-w-lg w-full pb-24">
@@ -98,6 +124,23 @@ export default function FlashcardUI({
           currentIndex={currentIndex}
           nextCard={nextCard}
           prevCard={prevCard}
+          onProgressMode={() => setProgressMode(!progressMode)}
+          onMarkKnown={(questionId) =>
+            setKnownQuestions((prev) => ({
+              ...prev,
+              [questionId]: "known",
+            }))
+          }
+          onMarkUnknown={(questionId) =>
+            setUnknownQuestions((prev) => ({
+              ...prev,
+              [questionId]: "unknown",
+            }))
+          }
+          showSummary={showSummary}
+          unknownQuestions={unknownQuestions}
+          knownQuestions={knownQuestions}
+          progressMode={progressMode}
         />
       )}
     </>

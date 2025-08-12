@@ -1,41 +1,59 @@
 import * as motion from "motion/react-client";
 import type { Variants } from "motion/react";
 import React, { useEffect } from "react";
-import { quiz, question } from "@/types/types";
+import { quiz, question, QuizletViewProps } from "@/types/types";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import { Progress } from "../ui/progress";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Check, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-interface QuizletViewProps {
-  questions: question[];
-  currentIndex: number;
-  nextCard: () => void;
-  prevCard: () => void;
-}
-
+import Summary from "./Summary";
 function QuizletView({
   questions,
   currentIndex,
   nextCard,
   prevCard,
+  onProgressMode,
+  onMarkKnown,
+  onMarkUnknown,
+  showSummary,
+  unknownQuestions,
+  knownQuestions,
+  progressMode,
 }: QuizletViewProps) {
   const [flipped, setFlipped] = useState(false);
   const currentQuestion = questions[currentIndex];
+  const [showSummaryQuizlet, setShowSummaryQuizlet] = useState(false);
+  const handleKnown = () => {
+    onMarkKnown(currentQuestion.id);
+    nextCard();
+  };
 
+  const handleUnknown = () => {
+    onMarkUnknown(currentQuestion.id);
+    nextCard();
+  };
   // Reset flip when changing cards
   useEffect(() => {
     setFlipped(false);
   }, [currentIndex]);
-
+  useEffect(() => setShowSummaryQuizlet(showSummary), [showSummary]);
+  if (showSummaryQuizlet)
+    return (
+      <Summary
+        unknownQuestions={unknownQuestions}
+        knownQuestions={knownQuestions}
+        questions={questions}
+      />
+    );
   if (!currentQuestion) return null;
 
   return (
@@ -47,7 +65,6 @@ function QuizletView({
         </span>
         <Progress value={((currentIndex + 1) / questions.length) * 100} />
       </div>
-
       {/* Main card */}
       <div className="w-full max-w-2xl h-96 mb-10">
         <motion.div
@@ -93,43 +110,93 @@ function QuizletView({
           </motion.div>
         </motion.div>
       </div>
-
       {/* Navigation */}
-      <div className="flex justify-between items-center max-w-md gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={prevCard} disabled={currentIndex === 0}>
-              <ChevronLeft />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Previous</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button>
-              <Plus />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add a Card</p>
-          </TooltipContent>
-        </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={nextCard}
-              disabled={currentIndex == questions.length - 1}
-            >
-              <ChevronRight />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Next</p>
-          </TooltipContent>
-        </Tooltip>
+      {progressMode ? (
+        <div className="flex justify-between items-center max-w-md gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={handleKnown}>
+                <Check />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Mark as known</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button>
+                <Plus />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add a Card</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={handleUnknown}>
+                <X />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Mark as unknown</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ) : (
+        <div className="flex justify-between items-center max-w-md gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={prevCard} disabled={currentIndex === 0}>
+                <ChevronLeft />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Previous</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button>
+                <Plus />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add a Card</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={nextCard}
+                disabled={currentIndex == questions.length - 1}
+              >
+                <ChevronRight />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Next</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
+      <div className="flex items-center justify-center gap-5">
+        <div className="flex items-center justify-center m-2">
+          <Switch
+            checked={progressMode}
+            onCheckedChange={() => {
+              onProgressMode();
+            }}
+          />
+          Track Progress
+        </div>
+        <div className="flex justify-center items-center">
+          <RotateCcw />
+        </div>
       </div>
     </div>
   );

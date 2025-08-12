@@ -24,3 +24,17 @@ export type question = {
   question: string;
   type: string;
 };
+
+export interface QuizletViewProps {
+  questions: question[];
+  currentIndex: number;
+  nextCard: () => void;
+  prevCard: () => void;
+  onProgressMode: () => void;
+  onMarkKnown: (questionId: string) => void;
+  onMarkUnknown: (questionId: string) => void;
+  showSummary: boolean;
+  unknownQuestions: { [questionId: string]: string };
+  knownQuestions: { [questionId: string]: string };
+  progressMode: boolean;
+}
