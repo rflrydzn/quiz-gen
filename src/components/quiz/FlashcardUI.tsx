@@ -92,6 +92,22 @@ export default function FlashcardUI({
     }
   }, [knownQuestions, unknownQuestions, progressMode, questions.length]);
 
+  function shuffleArray<T>(array: T[]): T[] {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+  const handleShuffle = () => {
+    setQuestionsForRound((prev) => shuffleArray(prev));
+    setCurrentIndex(0);
+    // Optionally, reset known/unknown and answeredInRound if you want a fresh start
+    // setKnownQuestions({});
+    // setUnknownQuestions({});
+    // setAnsweredInRound(new Set());
+  };
   const handleRetake = () => {
     const retakeList = questions.filter((q) => unknownQuestions[q.id]);
     setQuestionsForRound(retakeList); // or however you're storing displayed questions
@@ -106,6 +122,7 @@ export default function FlashcardUI({
     setShowSummary(false);
     console.log("restart triggered");
   };
+
   return (
     <>
       {!showSummary && (
@@ -165,6 +182,7 @@ export default function FlashcardUI({
           progressMode={progressMode}
           onRetake={handleRetake}
           onRestart={handleRestart}
+          onShuffle={handleShuffle}
         />
       )}
     </>

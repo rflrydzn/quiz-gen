@@ -30,6 +30,7 @@ function QuizletView({
   progressMode,
   onRetake,
   onRestart,
+  onShuffle,
 
   totalQuestions,
 }: QuizletViewProps) {
@@ -239,12 +240,18 @@ function QuizletView({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="cursor-pointer">
-                <Shuffle />
+              <button
+                className="cursor-pointer"
+                onClick={onShuffle}
+                disabled={currentIndex >= 1}
+              >
+                <Shuffle className={currentIndex >= 1 ? "text-muted" : ""} />
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Shuffle Cards</p>
+              <p>
+                {currentIndex >= 1 ? "Restart to shuffle" : "Shuffle Cards"}
+              </p>
             </TooltipContent>
           </Tooltip>
         </div>

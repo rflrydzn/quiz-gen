@@ -39,5 +39,6 @@ export interface QuizletViewProps {
   progressMode: boolean;
   onRetake: any;
   onRestart?: any;
+  onShuffle: any;
   totalQuestions: number;
 }
