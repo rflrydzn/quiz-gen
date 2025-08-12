@@ -86,7 +86,9 @@ function QuizletView({
           </div>
 
           <div className="flex justify-center items-center gap-2">
-            <h4 className="scroll-m-20 text-xl  tracking-tight">Unknown</h4>
+            <h4 className="scroll-m-20 text-xl  tracking-tight">
+              Still Learning
+            </h4>
             <h4 className="scroll-m-20 text-xl  tracking-tight border-1 rounded-2xl p-1 px-4 ">
               {Object.keys(unknownQuestions).length}
             </h4>
@@ -148,7 +150,7 @@ function QuizletView({
             checked={progressMode}
             onCheckedChange={() => onProgressMode()}
           />
-          <span>Progress Mode</span>
+          <Label>Progress Mode</Label>
         </div>
 
         {/* Center: Main nav */}
@@ -167,7 +169,7 @@ function QuizletView({
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button>
+                  <Button disabled>
                     <Plus />
                   </Button>
                 </TooltipTrigger>
@@ -200,7 +202,7 @@ function QuizletView({
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button>
+                  <Button disabled>
                     <Plus />
                   </Button>
                 </TooltipTrigger>
@@ -229,9 +231,13 @@ function QuizletView({
         <div className="absolute right-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <button onClick={onRestart} className="p-2 cursor-pointer">
+              <Button
+                onClick={onRestart}
+                className="cursor-pointer"
+                variant="ghost"
+              >
                 <RotateCcw />
-              </button>
+              </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Restart</p>
@@ -240,13 +246,14 @@ function QuizletView({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
+              <Button
                 className="cursor-pointer"
                 onClick={onShuffle}
                 disabled={currentIndex >= 1}
+                variant="ghost"
               >
                 <Shuffle className={currentIndex >= 1 ? "text-muted" : ""} />
-              </button>
+              </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>

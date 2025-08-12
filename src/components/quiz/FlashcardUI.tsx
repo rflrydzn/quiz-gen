@@ -120,6 +120,7 @@ export default function FlashcardUI({
     setKnownQuestions({});
     setUnknownQuestions({});
     setShowSummary(false);
+    setQuestionsForRound(questions);
     console.log("restart triggered");
   };
 

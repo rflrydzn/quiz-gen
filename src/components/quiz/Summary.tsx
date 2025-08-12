@@ -1,7 +1,7 @@
 import { question } from "@/types/types";
 import * as React from "react";
 import { Pie, PieChart, Label } from "recharts";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Confetti, type ConfettiRef } from "@/components/magicui/confetti";
 import {
   ChartConfig,
   ChartContainer,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/chart";
 import { Button } from "../ui/button";
 import { ChevronLeft, RotateCcw } from "lucide-react";
-
+import { useRef, useEffect } from "react";
 interface SummaryProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
@@ -31,9 +31,10 @@ const Summary: React.FC<SummaryProps> = ({
   const total = totalQuestions;
   const unknownCount = Object.keys(unknownQuestions).length;
   const knownCount = Object.keys(knownQuestions).length;
-  console.log({ knownCount, unknownCount, total });
+  const confettiRef = useRef<ConfettiRef>(null);
 
   const knownPercentage = Math.floor((knownCount / total) * 100);
+  const isPerfect = unknownCount === 0;
 
   const chartData = [
     { name: "Known", value: knownCount, fill: "var(--color-primary)" },
@@ -59,8 +60,19 @@ const Summary: React.FC<SummaryProps> = ({
     return "Let’s begin your learning journey 📚";
   };
 
+  useEffect(() => {
+    if (unknownCount === 0) {
+      confettiRef.current?.fire({});
+    }
+  }, [unknownCount]);
+
   return (
-    <div className="h-4/6  p-10">
+    <div className="h-4/6  p-10 ">
+      <Confetti
+        ref={confettiRef}
+        className="absolute left-0 top-0 z-0 size-full pointer-events-none"
+        manualstart={true}
+      />
       <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
         {getScoreHeading(knownPercentage)}
       </h1>
@@ -162,16 +174,20 @@ const Summary: React.FC<SummaryProps> = ({
             <Button
               className="w-full flex-1 rounded-4xl text-lg"
               variant="secondary"
-              onClick={onRetake}
+              onClick={!isPerfect ? onRetake : onRestart}
             >
-              Focus on {unknownCount} still learning card
+              {isPerfect
+                ? "Restart Flashcards"
+                : `Focus on ${unknownCount} still learning card`}
             </Button>
           </div>
           <div>
-            <Button variant="link" className="" onClick={onRestart}>
-              <RotateCcw />
-              Restart Flashcards
-            </Button>
+            {!isPerfect && (
+              <Button variant="link" className="" onClick={onRestart}>
+                <RotateCcw />
+                Restart Flashcards
+              </Button>
+            )}
           </div>
         </div>
       </div>
