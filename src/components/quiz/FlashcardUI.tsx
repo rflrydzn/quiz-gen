@@ -5,6 +5,8 @@ import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
 import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import QuizletView from "./QuizletView";
+import QuizNavButtons from "./QuizNavButtons";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function FlashcardUI({
   quiz,
@@ -13,6 +15,12 @@ export default function FlashcardUI({
   quiz: quiz;
   questions: question[];
 }) {
+  const { state, isMobile } = useSidebar();
+  const sidebarWidth = isMobile
+    ? 0 // mobile sidebar is a sheet, nav stays full width
+    : state === "expanded"
+    ? 256 // 16rem
+    : 48; // 3rem icon width
   const [verticalLayout, setVerticalLayout] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("flashcard-layout");
@@ -140,7 +148,7 @@ export default function FlashcardUI({
       );
       if (cardElement) {
         cardElement.scrollIntoView({
-          behavior: "instant",
+          behavior: "smooth",
           block: "center",
         });
       }
@@ -163,8 +171,8 @@ export default function FlashcardUI({
       )}
 
       {verticalLayout ? (
-        <div className="mx-auto my-24 max-w-lg w-full pb-24">
-          {questions.map((q, i) => (
+        <div className="relative mx-auto my-24 max-w-lg w-full pb-24">
+          {questionsForRound.map((q, i) => (
             <FlashcardVerticalScrollUI
               i={i}
               front={q.front}
@@ -209,6 +217,25 @@ export default function FlashcardUI({
           onShuffle={handleShuffle}
           onBack={handleBackToLastQuestion}
         />
+      )}
+
+      {verticalLayout && (
+        <div
+          className="fixed bottom-4 z-50 flex justify-center items-center transition-all duration-200"
+          style={{
+            left: `${sidebarWidth}px`,
+            width: `calc(100% - ${sidebarWidth}px)`,
+          }}
+        >
+          <div className="w-full max-w-lg bg-white/20 backdrop-blur-lg shadow-md border border-white/30 p-5 rounded-3xl">
+            <QuizNavButtons
+              progressMode={progressMode}
+              onProgressMode={() => setProgressMode(!progressMode)}
+              onShuffle={handleShuffle}
+              onRestart={handleRestart}
+            />
+          </div>
+        </div>
       )}
     </>
   );
