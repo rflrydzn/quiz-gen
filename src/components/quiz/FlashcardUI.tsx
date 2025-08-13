@@ -341,11 +341,32 @@ export default function FlashcardUI({
             width: `calc(100% - ${sidebarWidth}px)`,
           }}
         >
+          {progressMode && (
+            <div className="flex  justify-around w-full  absolute ">
+              <div className="flex justify-center items-center gap-2">
+                {/* <h4 className="scroll-m-20 text-xl  tracking-tight">Known</h4> */}
+                <h4 className="scroll-m-20 text-xl  tracking-tight border-1 rounded-2xl p-1 px-4 ">
+                  {Object.keys(knownQuestions).length}
+                </h4>
+              </div>
+
+              <div className="flex justify-center items-center gap-2">
+                {/* <h4 className="scroll-m-20 text-xl  tracking-tight">
+                  Still Learning
+                </h4> */}
+                <h4 className="scroll-m-20 text-xl  tracking-tight border-1 rounded-2xl p-1 px-4 ">
+                  {Object.keys(unknownQuestions).length}
+                </h4>
+              </div>
+            </div>
+          )}
           <div className="w-full max-w-lg bg-white/20 backdrop-blur-lg shadow-md border border-white/30 p-5 rounded-3xl">
             <QuizNavButtons
               progressMode={progressMode}
+              isVerticalLayout={verticalLayout}
               currentIndex={currentIndex}
               totalQuestions={totalQuestions}
+              roundQuestionLength={questions.length}
               onProgressMode={() => setProgressMode(!progressMode)}
               onNext={nextCard}
               onPrev={prevCard}
