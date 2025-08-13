@@ -150,7 +150,7 @@ export default function FlashcardUI({
       );
       if (cardElement) {
         cardElement.scrollIntoView({
-          behavior: "instant",
+          behavior: "smooth",
           block: "center",
         });
       }
