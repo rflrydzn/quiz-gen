@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { quiz, question } from "@/types/types";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@radix-ui/react-label";
@@ -8,6 +8,7 @@ import QuizletView from "./QuizletView";
 import QuizNavButtons from "./QuizNavButtons";
 import { useSidebar } from "@/components/ui/sidebar";
 import Summary from "./Summary";
+
 export default function FlashcardUI({
   quiz,
   questions,
@@ -21,16 +22,16 @@ export default function FlashcardUI({
     : state === "expanded"
     ? 256 // 16rem
     : 48; // 3rem icon width
+
   const [verticalLayout, setVerticalLayout] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("flashcard-layout");
       return saved ? JSON.parse(saved) : true;
     }
-
     return true;
   });
-  const [questionsForRound, setQuestionsForRound] = useState(questions);
 
+  const [questionsForRound, setQuestionsForRound] = useState(questions);
   const [progressMode, setProgressMode] = useState(false);
   const [knownQuestions, setKnownQuestions] = useState<{
     [questionID: string]: string;
@@ -45,18 +46,84 @@ export default function FlashcardUI({
       const saved = localStorage.getItem("flashcard-index");
       return saved ? Math.min(JSON.parse(saved), questions.length - 1) : 0;
     }
-
     return 0;
   });
+
+  // More aggressive approach: completely disable observer during programmatic operations
+  const isObserverEnabledRef = useRef(true);
+  const pendingScrollRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>(null);
+
   const currentQuestion = questions[currentIndex];
 
-  const nextCard = () => {
-    setCurrentIndex((prev) => (prev + 1) % questions.length);
-  };
+  const disableObserver = useCallback(() => {
+    isObserverEnabledRef.current = false;
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+  }, []);
 
-  const prevCard = () => {
-    setCurrentIndex((prev) => (prev - 1 + questions.length) % questions.length);
-  };
+  const enableObserver = useCallback(() => {
+    scrollTimeoutRef.current = setTimeout(() => {
+      isObserverEnabledRef.current = true;
+      pendingScrollRef.current = null;
+    }, 2000); // Increased timeout for safety
+  }, []);
+
+  const scrollToCard = useCallback(
+    (index: number, immediate = false) => {
+      disableObserver();
+      pendingScrollRef.current = index;
+
+      const cardElement = document.querySelector(`.card-container-${index}`);
+      if (cardElement) {
+        cardElement.scrollIntoView({
+          behavior: immediate ? "auto" : "smooth",
+          block: "center",
+        });
+      }
+
+      enableObserver();
+    },
+    [disableObserver, enableObserver]
+  );
+
+  const nextCard = useCallback(() => {
+    const newIndex = (currentIndex + 1) % questions.length;
+    disableObserver();
+    setCurrentIndex(newIndex);
+    if (verticalLayout) {
+      // Use setTimeout to ensure state update happens first
+      setTimeout(() => scrollToCard(newIndex), 0);
+    } else {
+      enableObserver();
+    }
+  }, [
+    currentIndex,
+    questions.length,
+    verticalLayout,
+    scrollToCard,
+    disableObserver,
+    enableObserver,
+  ]);
+
+  const prevCard = useCallback(() => {
+    const newIndex = (currentIndex - 1 + questions.length) % questions.length;
+    disableObserver();
+    setCurrentIndex(newIndex);
+    if (verticalLayout) {
+      setTimeout(() => scrollToCard(newIndex), 0);
+    } else {
+      enableObserver();
+    }
+  }, [
+    currentIndex,
+    questions.length,
+    verticalLayout,
+    scrollToCard,
+    disableObserver,
+    enableObserver,
+  ]);
 
   const handleBackToLastQuestion = () => {
     const lastIndex = questionsForRound.length - 1;
@@ -72,14 +139,23 @@ export default function FlashcardUI({
       delete copy[lastQuestion.id];
       return copy;
     });
+
+    disableObserver();
     setCurrentIndex(lastIndex);
     setShowSummary(false);
+    if (verticalLayout) {
+      setTimeout(() => scrollToCard(lastIndex), 0);
+    } else {
+      enableObserver();
+    }
   };
 
-  // Handle card view changes from vertical scroll
-  const handleCardInView = (index: number) => {
-    setCurrentIndex(index);
-  };
+  // Handle card view changes from vertical scroll - only when observer is enabled
+  const handleCardInView = useCallback((index: number) => {
+    if (isObserverEnabledRef.current && pendingScrollRef.current === null) {
+      setCurrentIndex(index);
+    }
+  }, []);
 
   const handleShuffle = () => {
     function shuffleArray<T>(array: T[]): T[] {
@@ -90,26 +166,42 @@ export default function FlashcardUI({
       }
       return shuffled;
     }
+
+    disableObserver();
     setQuestionsForRound((prev) => shuffleArray(prev));
     setCurrentIndex(0);
-    // Optionally, reset known/unknown and answeredInRound if you want a fresh start
-    // setKnownQuestions({});
-    // setUnknownQuestions({});
-    // setAnsweredInRound(new Set());
+    if (verticalLayout) {
+      setTimeout(() => scrollToCard(0), 0);
+    } else {
+      enableObserver();
+    }
   };
+
   const handleRetake = () => {
     const retakeList = questions.filter((q) => unknownQuestions[q.id]);
-    setQuestionsForRound(retakeList); // or however you're storing displayed questions
-    setUnknownQuestions({}); // start fresh for the new round
+    disableObserver();
+    setQuestionsForRound(retakeList);
+    setUnknownQuestions({});
     setCurrentIndex(0);
+    if (verticalLayout) {
+      setTimeout(() => scrollToCard(0), 0);
+    } else {
+      enableObserver();
+    }
   };
 
   const handleRestart = () => {
+    disableObserver();
     setCurrentIndex(0);
     setKnownQuestions({});
     setUnknownQuestions({});
     setShowSummary(false);
     setQuestionsForRound(questions);
+    if (verticalLayout) {
+      setTimeout(() => scrollToCard(0), 0);
+    } else {
+      enableObserver();
+    }
     console.log("restart triggered");
   };
 
@@ -142,20 +234,19 @@ export default function FlashcardUI({
     [knownQuestions, unknownQuestions]
   );
 
-  // Scroll to current card when switching to vertical layout
+  // Only scroll on layout change
   useEffect(() => {
     if (verticalLayout && currentIndex > 0) {
-      const cardElement = document.querySelector(
-        `.card-container-${currentIndex}`
-      );
-      if (cardElement) {
-        cardElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
+      scrollToCard(currentIndex, true); // Use immediate scroll for layout changes
     }
-  }, [verticalLayout, currentIndex]);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [verticalLayout]); // Removed currentIndex dependency
 
   if (showSummary)
     return (
