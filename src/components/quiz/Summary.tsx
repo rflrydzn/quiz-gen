@@ -18,6 +18,7 @@ interface SummaryProps {
   onRetake: any;
   onRestart: any;
   totalQuestions: number;
+  onBack: any;
 }
 
 const Summary: React.FC<SummaryProps> = ({
@@ -26,6 +27,7 @@ const Summary: React.FC<SummaryProps> = ({
   questions,
   onRetake,
   onRestart,
+  onBack,
   totalQuestions,
 }) => {
   const total = totalQuestions;
@@ -155,7 +157,7 @@ const Summary: React.FC<SummaryProps> = ({
             </div>
           </div>
           <div>
-            <Button variant="link" className="">
+            <Button variant="link" className="" onClick={onBack}>
               <ChevronLeft />
               Back to last question
             </Button>

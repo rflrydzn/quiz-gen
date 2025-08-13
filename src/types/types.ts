@@ -40,5 +40,6 @@ export interface QuizletViewProps {
   onRetake: any;
   onRestart?: any;
   onShuffle: any;
+  onBack: any;
   totalQuestions: number;
 }

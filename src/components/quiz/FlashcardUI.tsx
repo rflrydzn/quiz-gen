@@ -5,7 +5,6 @@ import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
 import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import QuizletView from "./QuizletView";
-import { object } from "motion/react-client";
 
 export default function FlashcardUI({
   quiz,
@@ -23,11 +22,15 @@ export default function FlashcardUI({
     return true;
   });
   const [questionsForRound, setQuestionsForRound] = useState(questions);
-
-  useEffect(() => {
-    localStorage.setItem("flashcard-layout", JSON.stringify(verticalLayout));
-  }, [verticalLayout]);
-
+  const [progressMode, setProgressMode] = useState(false);
+  const [knownQuestions, setKnownQuestions] = useState<{
+    [questionID: string]: string;
+  }>({});
+  const [unknownQuestions, setUnknownQuestions] = useState<{
+    [questionID: string]: string;
+  }>({});
+  const totalQuestions = questions.length;
+  const [showSummary, setShowSummary] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("flashcard-index");
@@ -37,10 +40,6 @@ export default function FlashcardUI({
     return 0;
   });
 
-  useEffect(() => {
-    localStorage.setItem("flashcard-index", JSON.stringify(currentIndex));
-  }, [currentIndex]);
-
   const nextCard = () => {
     setCurrentIndex((prev) => (prev + 1) % questions.length);
   };
@@ -49,58 +48,38 @@ export default function FlashcardUI({
     setCurrentIndex((prev) => (prev - 1 + questions.length) % questions.length);
   };
 
+  const handleBackToLastQuestion = () => {
+    const lastIndex = questionsForRound.length - 1;
+    const lastQuestion = questionsForRound[lastIndex];
+    setKnownQuestions((prev) => {
+      const copy = { ...prev };
+      delete copy[lastQuestion.id];
+      return copy;
+    });
+
+    setUnknownQuestions((prev) => {
+      const copy = { ...prev };
+      delete copy[lastQuestion.id];
+      return copy;
+    });
+    setCurrentIndex(lastIndex);
+    setShowSummary(false);
+  };
+
   // Handle card view changes from vertical scroll
   const handleCardInView = (index: number) => {
     setCurrentIndex(index);
   };
 
-  // Scroll to current card when switching to vertical layout
-  useEffect(() => {
-    if (verticalLayout && currentIndex > 0) {
-      const cardElement = document.querySelector(
-        `.card-container-${currentIndex}`
-      );
-      if (cardElement) {
-        cardElement.scrollIntoView({
-          behavior: "instant",
-          block: "center",
-        });
-      }
-    }
-  }, [verticalLayout, currentIndex]);
-  const [knownQuestions, setKnownQuestions] = useState<{
-    [questionID: string]: string;
-  }>({});
-
-  const totalQuestions = questions.length;
-  const [unknownQuestions, setUnknownQuestions] = useState<{
-    [questionID: string]: string;
-  }>({});
-  useEffect(() => console.log("unknown questions: ", unknownQuestions));
-  const [progressMode, setProgressMode] = useState(false);
-
-  const [showSummary, setShowSummary] = useState(false);
-  useEffect(() => {
-    const knownCount = Object.keys(knownQuestions).length;
-    const unknownCount = Object.keys(unknownQuestions).length;
-
-    if (knownCount + unknownCount === questions.length && progressMode) {
-      setShowSummary(true);
-      console.log("showing summary");
-    } else {
-      setShowSummary(false);
-    }
-  }, [knownQuestions, unknownQuestions, progressMode, questions.length]);
-
-  function shuffleArray<T>(array: T[]): T[] {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }
   const handleShuffle = () => {
+    function shuffleArray<T>(array: T[]): T[] {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
     setQuestionsForRound((prev) => shuffleArray(prev));
     setCurrentIndex(0);
     // Optionally, reset known/unknown and answeredInRound if you want a fresh start
@@ -123,6 +102,50 @@ export default function FlashcardUI({
     setQuestionsForRound(questions);
     console.log("restart triggered");
   };
+
+  useEffect(() => {
+    localStorage.setItem("flashcard-layout", JSON.stringify(verticalLayout));
+  }, [verticalLayout]);
+
+  useEffect(() => {
+    localStorage.setItem("flashcard-index", JSON.stringify(currentIndex));
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const knownCount = Object.keys(knownQuestions).length;
+    const unknownCount = Object.keys(unknownQuestions).length;
+
+    if (knownCount + unknownCount === questions.length && progressMode) {
+      setShowSummary(true);
+      console.log("showing summary");
+    } else {
+      setShowSummary(false);
+    }
+  }, [knownQuestions, unknownQuestions, progressMode, questions.length]);
+
+  useEffect(
+    () =>
+      console.log({
+        "unknown questions: ": unknownQuestions,
+        "known questions:": knownQuestions,
+      }),
+    [knownQuestions, unknownQuestions]
+  );
+
+  // Scroll to current card when switching to vertical layout
+  useEffect(() => {
+    if (verticalLayout && currentIndex > 0) {
+      const cardElement = document.querySelector(
+        `.card-container-${currentIndex}`
+      );
+      if (cardElement) {
+        cardElement.scrollIntoView({
+          behavior: "instant",
+          block: "center",
+        });
+      }
+    }
+  }, [verticalLayout, currentIndex]);
 
   return (
     <>
@@ -184,6 +207,7 @@ export default function FlashcardUI({
           onRetake={handleRetake}
           onRestart={handleRestart}
           onShuffle={handleShuffle}
+          onBack={handleBackToLastQuestion}
         />
       )}
     </>

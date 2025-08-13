@@ -31,6 +31,7 @@ function QuizletView({
   onRetake,
   onRestart,
   onShuffle,
+  onBack,
 
   totalQuestions,
 }: QuizletViewProps) {
@@ -61,6 +62,7 @@ function QuizletView({
         onRetake={onRetake}
         totalQuestions={totalQuestions}
         onRestart={onRestart}
+        onBack={onBack}
       />
     );
   if (!currentQuestion) return null;
