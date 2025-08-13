@@ -2,22 +2,13 @@ import * as motion from "motion/react-client";
 import type { Variants } from "motion/react";
 import React from "react";
 import { useEffect, useRef } from "react";
-interface CardProps {
-  front: string;
-  back: string;
-  hueA?: number;
-  hueB?: number;
-  i: number;
-  onInView?: () => void;
-  isActive?: boolean;
-}
+import Summary from "./Summary";
+import { CardProps } from "@/types/types";
 
 function FlashcardVerticalScrollUI({
   front,
   back,
   i,
-  hueA,
-  hueB,
   onInView,
   isActive,
 }: CardProps) {
@@ -45,6 +36,7 @@ function FlashcardVerticalScrollUI({
 
     return () => observer.disconnect();
   }, [onInView]);
+
   return (
     <div ref={cardRef}>
       <div style={container}>

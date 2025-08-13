@@ -1,15 +1,10 @@
 import * as motion from "motion/react-client";
-
 import React, { useEffect } from "react";
 import { quiz, question, QuizletViewProps } from "@/types/types";
-
 import { useState } from "react";
-
 import { Progress } from "../ui/progress";
-
 import QuizNavButtons from "./QuizNavButtons";
 
-import Summary from "./Summary";
 function QuizletView({
   questions,
   currentIndex,
@@ -18,19 +13,14 @@ function QuizletView({
   onProgressMode,
   onMarkKnown,
   onMarkUnknown,
-  showSummary,
   unknownQuestions,
   knownQuestions,
   progressMode,
-  onRetake,
   onRestart,
   onShuffle,
-  onBack,
-  totalQuestions,
 }: QuizletViewProps) {
   const [flipped, setFlipped] = useState(false);
   const currentQuestion = questions[currentIndex];
-  const [showSummaryQuizlet, setShowSummaryQuizlet] = useState(false);
   const handleKnown = () => {
     onMarkKnown(currentQuestion.id);
     nextCard();
@@ -44,19 +34,7 @@ function QuizletView({
   useEffect(() => {
     setFlipped(false);
   }, [currentIndex]);
-  useEffect(() => setShowSummaryQuizlet(showSummary), [showSummary]);
-  if (showSummaryQuizlet)
-    return (
-      <Summary
-        unknownQuestions={unknownQuestions}
-        knownQuestions={knownQuestions}
-        questions={questions}
-        onRetake={onRetake}
-        totalQuestions={totalQuestions}
-        onRestart={onRestart}
-        onBack={onBack}
-      />
-    );
+
   if (!currentQuestion) return null;
 
   return (

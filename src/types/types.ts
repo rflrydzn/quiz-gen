@@ -43,3 +43,21 @@ export interface QuizletViewProps {
   onBack: any;
   totalQuestions: number;
 }
+
+export interface CardProps {
+  front: string;
+  back: string;
+  hueA?: number;
+  hueB?: number;
+  i: number;
+  onInView?: () => void;
+  isActive?: boolean;
+  showSummary: boolean;
+  unknownQuestions: { [questionId: string]: string };
+  knownQuestions: { [questionId: string]: string };
+  questions: question[];
+  onRetake: any;
+  totalQuestions: number;
+  onRestart: any;
+  onBack: any;
+}

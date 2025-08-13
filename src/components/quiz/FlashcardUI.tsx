@@ -7,7 +7,7 @@ import FlashcardVerticalScrollUI from "./FlashcardVertical";
 import QuizletView from "./QuizletView";
 import QuizNavButtons from "./QuizNavButtons";
 import { useSidebar } from "@/components/ui/sidebar";
-
+import Summary from "./Summary";
 export default function FlashcardUI({
   quiz,
   questions,
@@ -30,6 +30,7 @@ export default function FlashcardUI({
     return true;
   });
   const [questionsForRound, setQuestionsForRound] = useState(questions);
+
   const [progressMode, setProgressMode] = useState(false);
   const [knownQuestions, setKnownQuestions] = useState<{
     [questionID: string]: string;
@@ -47,6 +48,7 @@ export default function FlashcardUI({
 
     return 0;
   });
+  const currentQuestion = questions[currentIndex];
 
   const nextCard = () => {
     setCurrentIndex((prev) => (prev + 1) % questions.length);
@@ -148,12 +150,25 @@ export default function FlashcardUI({
       );
       if (cardElement) {
         cardElement.scrollIntoView({
-          behavior: "smooth",
+          behavior: "instant",
           block: "center",
         });
       }
     }
   }, [verticalLayout, currentIndex]);
+
+  if (showSummary)
+    return (
+      <Summary
+        unknownQuestions={unknownQuestions}
+        knownQuestions={knownQuestions}
+        questions={questions}
+        onRetake={handleRetake}
+        totalQuestions={totalQuestions}
+        onRestart={handleRestart}
+        onBack={handleBackToLastQuestion}
+      />
+    );
 
   return (
     <>
@@ -180,6 +195,14 @@ export default function FlashcardUI({
               key={q.id}
               onInView={() => handleCardInView(i)}
               isActive={i === currentIndex}
+              showSummary={showSummary}
+              questions={questions}
+              unknownQuestions={unknownQuestions}
+              knownQuestions={knownQuestions}
+              onRestart={handleBackToLastQuestion}
+              onBack={handleBackToLastQuestion}
+              onRetake={handleRetake}
+              totalQuestions={totalQuestions}
             />
           ))}
         </div>
@@ -230,9 +253,33 @@ export default function FlashcardUI({
           <div className="w-full max-w-lg bg-white/20 backdrop-blur-lg shadow-md border border-white/30 p-5 rounded-3xl">
             <QuizNavButtons
               progressMode={progressMode}
+              currentIndex={currentIndex}
+              totalQuestions={totalQuestions}
               onProgressMode={() => setProgressMode(!progressMode)}
+              onNext={nextCard}
+              onPrev={prevCard}
               onShuffle={handleShuffle}
               onRestart={handleRestart}
+              onKnown={() => {
+                setKnownQuestions((prev) => ({
+                  ...prev,
+                  [currentQuestion.id]: "known",
+                }));
+                setUnknownQuestions((prev) => {
+                  const copy = { ...prev };
+                  delete copy[currentQuestion.id];
+                  return copy;
+                });
+
+                nextCard();
+              }}
+              onUnknown={() => {
+                setUnknownQuestions((prev) => ({
+                  ...prev,
+                  [currentQuestion.id]: "unknown",
+                }));
+                nextCard();
+              }}
             />
           </div>
         </div>
