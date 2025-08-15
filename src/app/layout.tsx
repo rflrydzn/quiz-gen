@@ -7,6 +7,8 @@ import Header from "@/components/Header";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { useState } from "react";
+import { Toaster } from "@/components/ui/sonner";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -41,6 +43,7 @@ export default function RootLayout({
               <SidebarTrigger />
               {children}
             </main>
+            <Toaster position="bottom-center" />
           </SidebarProvider>
         </QueryClientProvider>
       </body>

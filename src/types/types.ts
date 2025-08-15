@@ -61,3 +61,7 @@ export interface CardProps {
   onRestart: any;
   onBack: any;
 }
+
+export type PracticeQuizUIProps = {
+  questions: question[];
+};
