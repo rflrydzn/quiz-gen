@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { Progress } from "../ui/progress";
 const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -19,13 +20,22 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
   const [roundQuestions, setRoundQuestions] = useState(questions);
   const [userInput, setUserInput] = useState("");
   const [isRoundTwo, setIsRoundTwo] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [mastered, setMasteredQuestions] = useState<string[]>();
   const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = questions.length - 1;
   const correctAnswer = currentQuestion.answer;
   const isCorrect = userAnswer === correctAnswer;
   const knownCount = Object.keys(knownAnswer).length;
   const unknownCount = unknownAnswer.length;
-
+  const percentageScore =
+    (Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
+      (questions.length * 2)) *
+    100;
+  const summaryKnownCount = Object.values(knownAnswer).reduce(
+    (acc, curr) => acc + curr,
+    0
+  );
   const filterunknown = questions.filter((q, i) =>
     unknownAnswer.includes(q.id)
   );
@@ -121,6 +131,14 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     }
   };
   // Check answer when user selects
+
+  const getSummary = () => {
+    const filterMastered = Object.keys(knownAnswer).filter(
+      (qid) => knownAnswer[qid]
+    );
+    setMasteredQuestions(filterMastered);
+    setShowSummary(true);
+  };
   useEffect(() => {
     if (userAnswer === "") return;
 
@@ -165,67 +183,114 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     }
   };
 
-  return (
-    <div>
-      <p>{currentQuestion.question}</p>
-      <span>
-        {isSkipped && retryAttempts === 1
-          ? "No sweat, you're still learning!"
-          : isCorrect && retryAttempts === 0
-          ? "Good job"
-          : isCorrect && retryAttempts === 1
-          ? "You're getting it! You'll see this again later."
-          : retryAttempts >= 2
-          ? "You will see this again later"
-          : isSkipped
-          ? "Give this one a try later"
-          : retryAttempts === 1
-          ? "Let's try again"
-          : ""}
-      </span>
-      {isOpenEnded(currentQuestion.id) && isRoundTwo ? (
+  if (showSummary)
+    return (
+      <div>
+        <p>
+          total set progress:{" "}
+          {(Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
+            (questions.length * 2)) *
+            100}
+        </p>
         <div>
-          <Input
-            onChange={(e) => setUserInput(e.target.value)}
-            value={userInput}
-          ></Input>
-          <Button onClick={handleSubmit}>Submit</Button>
-        </div>
-      ) : (
-        <ToggleGroup type="single" value={userAnswer}>
-          {currentQuestion.choices.map((choice, index) => (
-            <ToggleGroupItem
-              variant="outline"
-              value={choice}
-              aria-label={choice}
-              key={index}
-              onClick={() => setUserAnswer(choice)}
-              className={renderChoices(choice)}
-            >
-              {choice}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      )}
+          <div className="w-full flex items-center justify-center">
+            {/* Progress bar */}
+            <div className="relative w-full">
+              <Progress value={percentageScore} className="h-4" />
 
-      <Button
-        onClick={() => {
-          setisSkipped(true);
-          handleUnknown();
-        }}
-      >
-        {retryAttempts === 0 ? "Dont't know?" : "Skip"}
-      </Button>
-      <div className="mt-4 flex gap-2">
-        <Button onClick={prevQuestion} disabled={currentIndex === 0}>
-          Previous
-        </Button>
+              {/* Circle count at the end of the progress */}
+              <div
+                className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
+                style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
+              >
+                {summaryKnownCount}
+              </div>
+            </div>
+
+            <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
+              {questions.length * 2}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2">
+          mastered:{" "}
+          {questions
+            .filter((q) => knownAnswer[q.id] === 2)
+            .map((q) => (
+              <div className="w-full border-2 flex">
+                <div className="w-1/3">{q.question}</div>
+                <div className="w-2/3">{q.answer}</div>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  return (
+    <div className=" w-full h-screen items-center justify-center flex">
+      <div className="">
+        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+          {currentQuestion.question}
+        </h3>
+        <span>
+          {isSkipped && retryAttempts === 1
+            ? "No sweat, you're still learning!"
+            : isCorrect && retryAttempts === 0
+            ? "Good job"
+            : isCorrect && retryAttempts === 1
+            ? "You're getting it! You'll see this again later."
+            : retryAttempts >= 2
+            ? "You will see this again later"
+            : isSkipped
+            ? "Give this one a try later"
+            : retryAttempts === 1
+            ? "Let's try again"
+            : ""}
+        </span>
+        {isOpenEnded(currentQuestion.id) && isRoundTwo ? (
+          <div>
+            <Input
+              onChange={(e) => setUserInput(e.target.value)}
+              value={userInput}
+            ></Input>
+            <Button onClick={handleSubmit}>Submit</Button>
+            <Button onClick={getSummary}>GET summary</Button>
+          </div>
+        ) : (
+          <ToggleGroup type="single" value={userAnswer}>
+            {currentQuestion.choices.map((choice, index) => (
+              <ToggleGroupItem
+                variant="outline"
+                value={choice}
+                aria-label={choice}
+                key={index}
+                onClick={() => setUserAnswer(choice)}
+                className={renderChoices(choice)}
+              >
+                {choice}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        )}
+
         <Button
-          onClick={nextQuestion}
-          disabled={currentIndex === lastQuestionIndex}
+          onClick={() => {
+            setisSkipped(true);
+            handleUnknown();
+          }}
         >
-          Next
+          {retryAttempts === 0 ? "Dont't know?" : "Skip"}
         </Button>
+        <div className="mt-4 flex gap-2">
+          <Button onClick={prevQuestion} disabled={currentIndex === 0}>
+            Previous
+          </Button>
+          <Button
+            onClick={nextQuestion}
+            disabled={currentIndex === lastQuestionIndex}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
