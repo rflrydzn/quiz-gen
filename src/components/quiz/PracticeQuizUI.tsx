@@ -3,19 +3,54 @@ import { useEffect, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
-  const [knownAnswer, setKnownAnswer] = useState<string[]>([]);
+  const [knownAnswer, setKnownAnswer] = useState<{
+    [questionId: string]: number;
+  }>({});
   const [unknownAnswer, setUnknownAnswer] = useState<string[]>([]);
   const [retryAttempts, setRetryAttempts] = useState(0);
   const [waitingForNext, setWaitingForNext] = useState(false);
   const [isSkipped, setisSkipped] = useState(false);
-  const currentQuestion = questions[currentIndex];
+  const [roundQuestions, setRoundQuestions] = useState(questions);
+  const [userInput, setUserInput] = useState("");
+  const [isRoundTwo, setIsRoundTwo] = useState(false);
+  const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = questions.length - 1;
   const correctAnswer = currentQuestion.answer;
+  const isCorrect = userAnswer === correctAnswer;
+  const knownCount = Object.keys(knownAnswer).length;
+  const unknownCount = unknownAnswer.length;
 
+  const filterunknown = questions.filter((q, i) =>
+    unknownAnswer.includes(q.id)
+  );
+
+  const isOpenEnded = (questionId: string) => {
+    return knownAnswer.hasOwnProperty(questionId);
+  };
+
+  const shuffleArray = (array: any[]) => {
+    // Fisher-Yates shuffle
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  useEffect(() => {
+    if (knownCount + unknownCount === questions.length)
+      console.log(filterunknown);
+  });
+  useEffect(() => {
+    console.log({ knownAnswer, unknownAnswer });
+  });
   const showToaster = () => {
     return toast("Press any key to continue.", {
       action: {
@@ -25,12 +60,19 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     });
   };
   const nextQuestion = () => {
-    // Remove focus from any currently focused element
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
 
-    setCurrentIndex((prev) => Math.min(prev + 1, lastQuestionIndex));
+    if (currentIndex === lastQuestionIndex) {
+      const shuffled = shuffleArray(roundQuestions);
+      setRoundQuestions(shuffled);
+      setIsRoundTwo(true);
+      setCurrentIndex(0);
+    } else {
+      setCurrentIndex((prev) => Math.min(prev + 1, lastQuestionIndex));
+    }
+
     resetQuestionState();
   };
 
@@ -44,7 +86,10 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
   };
 
   const handleKnown = () => {
-    setKnownAnswer((prev) => [...prev, currentQuestion.id]);
+    setKnownAnswer((prev) => ({
+      ...prev,
+      [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
+    }));
     setWaitingForNext(true);
     showToaster();
   };
@@ -67,6 +112,14 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     setisSkipped(false); // ✅ reset skip flag
   };
 
+  const handleSubmit = () => {
+    if (userInput === correctAnswer) {
+      console.log("correct!");
+      handleKnown();
+    } else {
+      handleUnknown();
+    }
+  };
   // Check answer when user selects
   useEffect(() => {
     if (userAnswer === "") return;
@@ -87,10 +140,6 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     }
   }, [userAnswer, correctAnswer, currentQuestion.id]);
 
-  useEffect(() => console.log("wrong", wrongAnswers), [wrongAnswers]);
-  useEffect(() => console.log("knownAnswer", knownAnswer), [knownAnswer]);
-  useEffect(() => console.log("unknownAnswer", unknownAnswer), [unknownAnswer]);
-  useEffect(() => console.log("retry", retryAttempts), [retryAttempts]);
   // Auto-next when waiting and user presses a key
   useEffect(() => {
     if (!waitingForNext) return;
@@ -120,42 +169,52 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
     <div>
       <p>{currentQuestion.question}</p>
       <span>
-        {retryAttempts === 1
-          ? "Let's try again"
+        {isSkipped && retryAttempts === 1
+          ? "No sweat, you're still learning!"
+          : isCorrect && retryAttempts === 0
+          ? "Good job"
+          : isCorrect && retryAttempts === 1
+          ? "You're getting it! You'll see this again later."
           : retryAttempts >= 2
           ? "You will see this again later"
+          : isSkipped
+          ? "Give this one a try later"
+          : retryAttempts === 1
+          ? "Let's try again"
           : ""}
       </span>
+      {isOpenEnded(currentQuestion.id) && isRoundTwo ? (
+        <div>
+          <Input
+            onChange={(e) => setUserInput(e.target.value)}
+            value={userInput}
+          ></Input>
+          <Button onClick={handleSubmit}>Submit</Button>
+        </div>
+      ) : (
+        <ToggleGroup type="single" value={userAnswer}>
+          {currentQuestion.choices.map((choice, index) => (
+            <ToggleGroupItem
+              variant="outline"
+              value={choice}
+              aria-label={choice}
+              key={index}
+              onClick={() => setUserAnswer(choice)}
+              className={renderChoices(choice)}
+            >
+              {choice}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
 
-      <ToggleGroup type="single" value={userAnswer}>
-        {currentQuestion.choices.map((choice, index) => (
-          <ToggleGroupItem
-            variant="outline"
-            value={choice}
-            aria-label={choice}
-            key={index}
-            onClick={() => setUserAnswer(choice)}
-            // className={
-            //   wrongAnswers.length >= 2 && choice === correctAnswer
-            //     ? "border-green-400"
-            //     : wrongAnswers.includes(choice) &&
-            //       !wrongAnswers.includes(correctAnswer)
-            //     ? "border-red-400"
-            //     : ""
-            // }
-            className={renderChoices(choice)}
-          >
-            {choice}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
       <Button
         onClick={() => {
           setisSkipped(true);
           handleUnknown();
         }}
       >
-        Dont know
+        {retryAttempts === 0 ? "Dont't know?" : "Skip"}
       </Button>
       <div className="mt-4 flex gap-2">
         <Button onClick={prevQuestion} disabled={currentIndex === 0}>
