@@ -1,11 +1,13 @@
+"use client";
 import { PracticeQuizUIProps } from "@/types/types";
 import { useEffect, useState } from "react";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { Button } from "../ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Input } from "../ui/input";
-import { Progress } from "../ui/progress";
-const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import questions from "@/../test.json";
+const PracticeQuizUI = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
@@ -225,6 +227,7 @@ const PracticeQuizUI = ({ questions }: PracticeQuizUIProps) => {
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight my-5">
           {currentQuestion.question}
         </h3>
+
         <div className="flex flex-col gap-3">
           <span className="">
             {isSkipped && retryAttempts === 1

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "55f97acc-4e37-4c77-9a2e-864e61555be5",
+    "quiz_id": "d4badb98-edcd-4079-9a94-056714f20839",
+    "type": "Multiple Choice",
+    "question": "What celestial body is at the center of our solar system, according to the text?",
+    "difficulty": "easy",
+    "choices": ["The Moon", "The Earth", "The Sun", "Mars"],
+    "answer": "The Sun",
+    "hint": "It is a massive star that provides light and heat.",
+    "explanation": "The text explicitly states, 'The Sun, a massive star at the center, provides the light and heat...'",
+    "front": null,
+    "back": null,
+    "created_at": "2025-08-14T08:03:55.752742+00:00"
+  },
+  {
+    "id": "faa83f9d-df95-42ff-82cc-1014a47e8515",
+    "quiz_id": "d4badb98-edcd-4079-9a94-056714f20839",
+    "type": "Multiple Choice",
+    "question": "How many planets are listed as orbiting the Sun in the provided text?",
+    "difficulty": "easy",
+    "choices": ["Seven", "Eight", "Nine", "Ten"],
+    "answer": "Eight",
+    "hint": "Count the specific planet names mentioned.",
+    "explanation": "The text states 'eight planets—Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune—along with their moons...'",
+    "front": null,
+    "back": null,
+    "created_at": "2025-08-14T08:03:55.752742+00:00"
+  },
+  {
+    "id": "00951171-419c-44d0-8474-c0a49486bb95",
+    "quiz_id": "d4badb98-edcd-4079-9a94-056714f20839",
+    "type": "Multiple Choice",
+    "question": "What kind of paths do the planets orbit the Sun in?",
+    "difficulty": "easy",
+    "choices": [
+      "Circular paths",
+      "Square paths",
+      "Elliptical paths",
+      "Straight lines"
+    ],
+    "answer": "Elliptical paths",
+    "hint": "The shape is not a perfect circle.",
+    "explanation": "The text mentions, 'The planets orbit the Sun in elliptical paths...'",
+    "front": null,
+    "back": null,
+    "created_at": "2025-08-14T08:03:55.752742+00:00"
+  },
+  {
+    "id": "147d9840-0b6b-4aa9-8298-f7dc3221675a",
+    "quiz_id": "d4badb98-edcd-4079-9a94-056714f20839",
+    "type": "Multiple Choice",
+    "question": "What are the inner planets primarily described as in the text?",
+    "difficulty": "easy",
+    "choices": ["Gaseous", "Icy", "Rocky", "Liquid"],
+    "answer": "Rocky",
+    "hint": "Think about Earth's composition.",
+    "explanation": "The text states, '...with the inner rocky planets closer and the outer gas and ice giants farther away.'",
+    "front": null,
+    "back": null,
+    "created_at": "2025-08-14T08:03:55.752742+00:00"
+  },
+  {
+    "id": "83fafbf3-f28c-4e9e-93e4-a3a3f97ee5e7",
+    "quiz_id": "d4badb98-edcd-4079-9a94-056714f20839",
+    "type": "Multiple Choice",
+    "question": "Approximately how long ago was the solar system formed, according to the text?",
+    "difficulty": "easy",
+    "choices": [
+      "1 billion years ago",
+      "2.5 billion years ago",
+      "4.6 billion years ago",
+      "10 billion years ago"
+    ],
+    "answer": "4.6 billion years ago",
+    "hint": "Look for a specific age associated with its formation.",
+    "explanation": "The text mentions 'remnants from its formation about 4.6 billion years ago.'",
+    "front": null,
+    "back": null,
+    "created_at": "2025-08-14T08:03:55.752742+00:00"
+  }
+]
