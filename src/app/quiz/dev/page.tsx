@@ -1,6 +1,6 @@
 "use client";
 import { PracticeQuizUIProps } from "@/types/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -23,10 +23,12 @@ const PracticeQuizUI = () => {
   const [isRoundTwo, setIsRoundTwo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [mastered, setMasteredQuestions] = useState<string[]>();
+
   const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = questions.length - 1;
   const correctAnswer = currentQuestion.answer;
   const isCorrect = userAnswer === correctAnswer;
+  const isIncorrect = userAnswer === correctAnswer;
   const knownCount = Object.keys(knownAnswer).length;
   const unknownCount = unknownAnswer.length;
   const percentageScore =
@@ -77,6 +79,11 @@ const PracticeQuizUI = () => {
       setCurrentIndex((prev) => Math.min(prev + 1, lastQuestionIndex));
     }
 
+    if (currentIndex === lastQuestionIndex && isRoundTwo) {
+      setShowSummary(true);
+    }
+    setUserInput("");
+
     resetQuestionState();
   };
 
@@ -90,10 +97,19 @@ const PracticeQuizUI = () => {
   };
 
   const handleKnown = () => {
-    setKnownAnswer((prev) => ({
-      ...prev,
-      [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
-    }));
+    if (retryAttempts === 0) {
+      setKnownAnswer((prev) => ({
+        ...prev,
+        [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
+      }));
+    }
+
+    if (retryAttempts === 1) {
+      setKnownAnswer((prev) => ({
+        ...prev,
+        [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 0,
+      }));
+    }
     setWaitingForNext(true);
     showToaster();
   };
@@ -117,16 +133,20 @@ const PracticeQuizUI = () => {
   };
 
   const handleSubmit = () => {
-    if (userInput === correctAnswer) {
+    const lowercaseInput = userInput.toLocaleLowerCase();
+    const lowercaseAnswer = correctAnswer.toLocaleLowerCase();
+    console.log(lowercaseAnswer, lowercaseInput);
+    if (lowercaseInput === lowercaseAnswer) {
       handleKnown();
     }
 
-    if (userInput !== correctAnswer) {
+    if (lowercaseInput !== lowercaseAnswer) {
       setRetryAttempts(retryAttempts + 1);
     }
   };
   // Check answer when user selects
   useEffect(() => console.log("retry attempts", retryAttempts));
+  useEffect(() => console.log("known", knownAnswer));
 
   const getSummary = () => {
     const filterMastered = Object.keys(knownAnswer).filter(
@@ -213,7 +233,30 @@ const PracticeQuizUI = () => {
           {questions
             .filter((q) => knownAnswer[q.id] === 2)
             .map((q) => (
-              <div className="w-full border-2 flex">
+              <div className="w-full border-2 flex" key={q.id}>
+                <div className="w-1/3">{q.question}</div>
+                <div className="w-2/3">{q.answer}</div>
+              </div>
+            ))}
+        </div>
+        <div className="space-y-2">
+          needs improvement:{" "}
+          {questions
+            .filter((q) => knownAnswer[q.id] === 1)
+            .map((q) => (
+              <div className="w-full border-2 flex" key={q.id}>
+                <div className="w-1/3">{q.question}</div>
+                <div className="w-2/3">{q.answer}</div>
+              </div>
+            ))}
+        </div>
+
+        <div className="space-y-2">
+          need to study:{" "}
+          {questions
+            .filter((q) => knownAnswer[q.id] === 0)
+            .map((q) => (
+              <div className="w-full border-2 flex" key={q.id}>
                 <div className="w-1/3">{q.question}</div>
                 <div className="w-2/3">{q.answer}</div>
               </div>
@@ -250,8 +293,9 @@ const PracticeQuizUI = () => {
             <div className="flex flex-col gap-3">
               <Input
                 onChange={(e) => setUserInput(e.target.value)}
-                value={userInput}
+                value={retryAttempts === 1 ? wrongAnswers[0] : userInput}
                 disabled={retryAttempts !== 0}
+                className={retryAttempts !== 0 ? "border-red-300" : ""}
               />
               <Input
                 className={retryAttempts === 0 ? "hidden" : "inline"}
