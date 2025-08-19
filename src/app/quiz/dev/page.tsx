@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import questions from "@/../test.json";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 const PracticeQuizUI = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -20,18 +22,23 @@ const PracticeQuizUI = () => {
   const [isSkipped, setisSkipped] = useState(false);
   const [roundQuestions, setRoundQuestions] = useState(questions);
   // const [userInput, setUserInput] = useState("");
+  const [currentQuestionInterface, setCurrentQuestionInterface] = useState<
+    "mcq" | "input"
+  >("mcq");
+
   const [firstInput, setFirstInput] = useState("");
   const [secondInput, setSecondInput] = useState("");
   const [isRoundTwo, setIsRoundTwo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [mastered, setMasteredQuestions] = useState<string[]>();
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
   const secondInputRef = useRef<HTMLInputElement>(null);
   const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = questions.length - 1;
   const correctAnswer = currentQuestion.answer;
   const [isCorrect, setIsCorrect] = useState(false);
-  const isIncorrect = userAnswer === correctAnswer;
+  const isIncorrect = userAnswer !== correctAnswer;
   const knownCount = Object.keys(knownAnswer).length;
   const unknownCount = unknownAnswer.length;
   const percentageScore =
@@ -103,6 +110,7 @@ const PracticeQuizUI = () => {
         [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 0,
       }));
     }
+    setIsTransitioning(true); // Add this line
     setTimeout(() => nextQuestion(), 1000);
   };
 
@@ -125,6 +133,7 @@ const PracticeQuizUI = () => {
     setIsCorrect(false);
     setFirstInput("");
     setSecondInput("");
+    setIsTransitioning(false);
   };
 
   const handleSubmit = () => {
@@ -146,6 +155,22 @@ const PracticeQuizUI = () => {
     firstInputRef.current?.blur(); // optional: remove focus
     secondInputRef.current?.blur();
   };
+
+  // const handleContinue = () => {
+  //   const filterRemaining = questions.filter(
+  //     (q) => !Object.values(knownAnswer).includes(2)
+  //   );
+  //   const mastered = Object.fromEntries(
+  //     Object.entries(knownAnswer).filter(([id, value]) => value === 2)
+  //   );
+
+  //   setRoundQuestions(filterRemaining);
+  //   setShowSummary(false);
+  //   setIsRoundTwo(false);
+  //   setUnknownAnswer([]);
+  //   setCurrentIndex(0);
+  //   setKnownAnswer(mastered);
+  // };
   // Check answer when user selects
   useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
   useEffect(() => console.log("known", knownAnswer));
@@ -157,29 +182,40 @@ const PracticeQuizUI = () => {
   }, [retryAttempts]);
 
   useEffect(() => {
-    if (isRoundTwo) return;
     if (userAnswer === "") return;
 
-    if (userAnswer !== correctAnswer) {
-      setWrongAnswers((prev) => [...prev, userAnswer]);
-      setRetryAttempts((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 2) {
-          handleUnknown();
+    if (!isOpenEnded(currentQuestion.id)) {
+      if (userAnswer !== correctAnswer) {
+        setWrongAnswers((prev) => [...prev, userAnswer]);
+        setRetryAttempts((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 2) {
+            handleUnknown();
+          }
+          return newCount;
+        });
+      } else if (userAnswer === correctAnswer) {
+        if (retryAttempts <= 1) {
+          handleKnown();
         }
-        return newCount;
-      });
-    } else if (userAnswer === correctAnswer) {
-      if (retryAttempts <= 1) {
-        handleKnown();
       }
     }
   }, [userAnswer, correctAnswer, currentQuestion.id]);
+  // Update this in your nextQuestion function or when currentIndex changes
+  useEffect(() => {
+    // Determine interface type when question loads, before any user interaction
+    const shouldShowInput = isOpenEnded(currentQuestion.id) && isRoundTwo;
+    setCurrentQuestionInterface(shouldShowInput ? "input" : "mcq");
+  }, [currentIndex, isRoundTwo, currentQuestion.id]);
 
   // Auto-next when waiting and user presses a key
   useEffect(() => {
     if (!waitingForNext) return;
-    const handleKeyPress = () => nextQuestion();
+    const handleKeyPress = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation(); // stop event bubbling
+      nextQuestion();
+    };
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [waitingForNext]);
@@ -203,64 +239,134 @@ const PracticeQuizUI = () => {
   useEffect(() => console.log("iscorrect", isCorrect));
   if (showSummary)
     return (
-      <div>
-        <p>
-          total set progress:{" "}
-          {(Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
-            (questions.length * 2)) *
-            100}
-        </p>
-        <div>
-          <div className="w-full flex items-center justify-center">
-            {/* Progress bar */}
-            <div className="relative w-full">
-              <Progress value={percentageScore} className="h-4" />
+      <div className="m-10">
+        <div className="space-y-3 flex flex-col">
+          <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
+            Going strong, you can do this.
+          </h1>
+          {/* <Button className="fixed right-0 top-0" onClick={handleContinue}>
+            Learn remaining sets
+          </Button> */}
+          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+            Total set progress:{" "}
+            {(Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
+              (questions.length * 2)) *
+              100}{" "}
+            %
+          </h4>
+          <div>
+            <div className="w-full flex items-center justify-center">
+              {/* Progress bar */}
+              <div className="relative w-full">
+                <Progress value={percentageScore} className="h-4" />
 
-              {/* Circle count at the end of the progress */}
-              <div
-                className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
-                style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
-              >
-                {summaryKnownCount}
+                {/* Circle count at the end of the progress */}
+                <div
+                  className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
+                  style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
+                >
+                  {summaryKnownCount}
+                </div>
               </div>
-            </div>
 
-            <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
-              {questions.length * 2}
+              <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
+                {questions.length * 2}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          mastered:{" "}
-          {questions
-            .filter((q) => knownAnswer[q.id] === 2)
-            .map((q) => (
-              <div className="w-full border-2 flex" key={q.id}>
-                <div className="w-1/3">{q.question}</div>
-                <div className="w-2/3">{q.answer}</div>
-              </div>
-            ))}
-        </div>
-        <div className="space-y-2">
-          needs improvement:{" "}
-          {questions
-            .filter((q) => knownAnswer[q.id] === 1)
-            .map((q) => (
-              <div className="w-full border-2 flex" key={q.id}>
-                <div className="w-1/3">{q.question}</div>
-                <div className="w-2/3">{q.answer}</div>
-              </div>
-            ))}
+          <div className="flex justify-between">
+            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+              Correct
+            </h4>
+            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+              Total questions
+            </h4>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          need to study:{" "}
+        <Separator className="my-4" />
+
+        <div className="flex flex-col space-y-5">
+          {Object.values(knownAnswer).includes(2) && (
+            <div className="space-y-2">
+              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                Mastered:
+              </h4>
+              {questions
+                .filter((q) => knownAnswer[q.id] === 2)
+                .map((q) => (
+                  <div
+                    className="w-full  flex border rounded-lg p-4  bg-background"
+                    key={q.id}
+                  >
+                    <div className="w-1/4 p-3">
+                      <p className="leading-7 [&:not(:first-child)]:mt-6">
+                        {q.answer}
+                      </p>
+                    </div>
+                    <Separator orientation="vertical" />
+                    <div className="w-3/4 p-3">
+                      <p className="leading-7 [&:not(:first-child)]:mt-6">
+                        {q.question}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {Object.values(knownAnswer).includes(1) && (
+            <div className="space-y-2">
+              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                Partial Understanding:
+              </h4>
+              {questions
+                .filter((q) => knownAnswer[q.id] === 1)
+                .map((q) => (
+                  <div
+                    className="w-full  flex border rounded-lg p-4  bg-background"
+                    key={q.id}
+                  >
+                    <div className="w-1/4 p-3">
+                      <p className="leading-7 [&:not(:first-child)]:mt-6">
+                        {q.answer}
+                      </p>
+                    </div>
+                    <Separator orientation="vertical" />
+                    <div className="w-3/4 p-3">
+                      <p className="leading-7 [&:not(:first-child)]:mt-6">
+                        {q.question}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+
           {questions
-            .filter((q) => knownAnswer[q.id] === 0)
-            .map((q) => (
-              <div className="w-full border-2 flex" key={q.id}>
-                <div className="w-1/3">{q.question}</div>
-                <div className="w-2/3">{q.answer}</div>
+            .filter((q) => !(q.id in knownAnswer))
+            .map((question) => (
+              <div className="space-y-2" key={question.id}>
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Needs Review:
+                </h4>
+
+                <div
+                  className="w-full  flex border rounded-lg p-4  bg-background"
+                  key={question.id}
+                >
+                  <div className="w-1/4 p-3">
+                    <p className="leading-7 [&:not(:first-child)]:mt-6">
+                      {question.answer}
+                    </p>
+                  </div>
+                  <Separator orientation="vertical" />
+                  <div className="w-3/4 p-3">
+                    <p className="leading-7 [&:not(:first-child)]:mt-6">
+                      {question.question}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
         </div>
@@ -289,66 +395,80 @@ const PracticeQuizUI = () => {
         </h3>
 
         <div className="flex flex-col gap-3">
-          <span className="">
-            {isSkipped && retryAttempts === 1
-              ? "No sweat, you're still learning!"
-              : isCorrect && retryAttempts === 0
-              ? "Good job"
-              : isCorrect && retryAttempts === 1
-              ? "You're getting it! You'll see this again later."
-              : retryAttempts >= 2
-              ? "You will see this again later"
-              : isSkipped
-              ? "Give this one a try later"
-              : retryAttempts === 1
-              ? "Let's try again"
-              : isOpenEnded(currentQuestion.id)
-              ? "Your Answer"
-              : "Choose an option"}
-          </span>
-          {isOpenEnded(currentQuestion.id) && isRoundTwo ? (
+          {currentQuestionInterface === "input" ? (
             <div className="flex flex-col gap-3">
-              <Input
-                onChange={(e) => setFirstInput(e.target.value)}
-                value={firstInput}
-                disabled={retryAttempts !== 0 || isSkipped}
-                className={
-                  isCorrect && retryAttempts === 1
-                    ? "hidden"
-                    : retryAttempts !== 0
-                    ? "border-red-300"
-                    : isCorrect
-                    ? " border-green-300"
-                    : ""
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-                }}
-                ref={firstInputRef}
-                placeholder={isSkipped ? "Skipped" : ""}
-              />
-              <Input
-                className={
-                  retryAttempts === 0 && !isSkipped
-                    ? "hidden"
-                    : `inline ${
-                        isCorrect || isSkipped || retryAttempts === 2
-                          ? "border-green-300"
-                          : ""
-                      }`
-                }
-                onChange={(e) => setSecondInput(e.target.value)}
-                value={
-                  isSkipped || retryAttempts === 2
-                    ? correctAnswer
-                    : secondInput ?? ""
-                }
-                disabled={retryAttempts !== 1}
-                ref={secondInputRef}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-                }}
-              />
+              <div className="">
+                <Label className="mb-2">
+                  {isSkipped && retryAttempts === 1
+                    ? "No sweat, you're still learning!"
+                    : isCorrect && retryAttempts === 0
+                    ? "Good job"
+                    : isCorrect && retryAttempts === 1
+                    ? "You're getting it! You'll see this again later."
+                    : retryAttempts >= 2
+                    ? "You will see this again later"
+                    : isSkipped
+                    ? "Give this one a try later"
+                    : retryAttempts === 1 && isOpenEnded(currentQuestion.id)
+                    ? "Previous answer"
+                    : retryAttempts === 1
+                    ? "Let's try again"
+                    : isOpenEnded(currentQuestion.id)
+                    ? "Your Answer"
+                    : "Choose an option"}
+                </Label>
+                <Input
+                  onChange={(e) => setFirstInput(e.target.value)}
+                  value={firstInput}
+                  disabled={retryAttempts !== 0 || isSkipped}
+                  className={
+                    isCorrect && retryAttempts === 1
+                      ? "hidden"
+                      : retryAttempts !== 0
+                      ? "border-red-300"
+                      : isCorrect
+                      ? " border-green-300"
+                      : ""
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSubmit();
+                  }}
+                  ref={firstInputRef}
+                  placeholder={isSkipped ? "Skipped" : ""}
+                />
+              </div>
+
+              <div className="">
+                <Label
+                  className={
+                    retryAttempts === 0 && !isSkipped ? "hidden" : "inline mb-2"
+                  }
+                >
+                  Let's try again
+                </Label>
+                <Input
+                  className={
+                    retryAttempts === 0 && !isSkipped
+                      ? "hidden"
+                      : `inline ${
+                          isCorrect || isSkipped || retryAttempts === 2
+                            ? "border-green-300"
+                            : ""
+                        }`
+                  }
+                  onChange={(e) => setSecondInput(e.target.value)}
+                  value={
+                    isSkipped || retryAttempts === 2
+                      ? correctAnswer
+                      : secondInput ?? ""
+                  }
+                  disabled={retryAttempts !== 1}
+                  ref={secondInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSubmit();
+                  }}
+                />
+              </div>
               <div className="self-end">
                 <Button onClick={handleSubmit}>Submit</Button>
                 <Button
