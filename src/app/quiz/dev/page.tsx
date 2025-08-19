@@ -35,7 +35,7 @@ const PracticeQuizUI = () => {
   const firstInputRef = useRef<HTMLInputElement>(null);
   const secondInputRef = useRef<HTMLInputElement>(null);
   const currentQuestion = roundQuestions[currentIndex];
-  const lastQuestionIndex = questions.length - 1;
+  const lastQuestionIndex = roundQuestions.length - 1;
   const correctAnswer = currentQuestion.answer;
   const [isCorrect, setIsCorrect] = useState(false);
   const isIncorrect = userAnswer !== correctAnswer;
@@ -75,6 +75,17 @@ const PracticeQuizUI = () => {
       },
     });
   };
+
+  const showToaster2 = () => {
+    return toast("Practice remaining sets.", {
+      duration: Infinity,
+      action: {
+        label: "Continue",
+        onClick: () => handleContinue(),
+      },
+    });
+  };
+
   const nextQuestion = () => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
@@ -91,6 +102,7 @@ const PracticeQuizUI = () => {
 
     if (currentIndex === lastQuestionIndex && isRoundTwo) {
       setShowSummary(true);
+      showToaster2();
     }
 
     resetQuestionState();
@@ -156,21 +168,21 @@ const PracticeQuizUI = () => {
     secondInputRef.current?.blur();
   };
 
-  // const handleContinue = () => {
-  //   const filterRemaining = questions.filter(
-  //     (q) => !Object.values(knownAnswer).includes(2)
-  //   );
-  //   const mastered = Object.fromEntries(
-  //     Object.entries(knownAnswer).filter(([id, value]) => value === 2)
-  //   );
+  const handleContinue = () => {
+    const filterRemaining = questions.filter((q) => knownAnswer[q.id] !== 2);
+    const mastered = Object.fromEntries(
+      Object.entries(knownAnswer).filter(([id, value]) => value === 2)
+    );
 
-  //   setRoundQuestions(filterRemaining);
-  //   setShowSummary(false);
-  //   setIsRoundTwo(false);
-  //   setUnknownAnswer([]);
-  //   setCurrentIndex(0);
-  //   setKnownAnswer(mastered);
-  // };
+    setRoundQuestions(filterRemaining);
+    console.log("reset", roundQuestions);
+    setShowSummary(false);
+    setIsRoundTwo(false);
+    setUnknownAnswer([]);
+    setCurrentIndex(0);
+    setKnownAnswer(mastered);
+    console.log("reset", roundQuestions);
+  };
   // Check answer when user selects
   useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
   useEffect(() => console.log("known", knownAnswer));
@@ -236,7 +248,10 @@ const PracticeQuizUI = () => {
         return "";
     }
   };
-  useEffect(() => console.log("iscorrect", isCorrect));
+
+  useEffect(() => console.log("roundques", roundQuestions.length));
+  useEffect(() => console.log("index", currentIndex));
+  useEffect(() => console.log("round", isRoundTwo));
   if (showSummary)
     return (
       <div className="m-10">
@@ -244,9 +259,9 @@ const PracticeQuizUI = () => {
           <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
             Going strong, you can do this.
           </h1>
-          {/* <Button className="fixed right-0 top-0" onClick={handleContinue}>
+          <Button className="fixed right-0 top-0" onClick={handleContinue}>
             Learn remaining sets
-          </Button> */}
+          </Button>
           <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
             Total set progress:{" "}
             {(Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
@@ -374,21 +389,45 @@ const PracticeQuizUI = () => {
     );
   return (
     <div className=" w-full h-screen items-center justify-center flex">
-      <Button
-        className="fixed left-1/2 top-0"
-        onClick={() => {
-          const obj = questions.reduce((acc: any, item: any) => {
-            acc[item.id] = 2; // set value 2 for each id
-            return acc;
-          }, {});
-          setIsRoundTwo(true);
+      <div className="fixed top-0 left-1/2">
+        <Button
+          className=""
+          onClick={() => {
+            const obj = questions.reduce((acc: any, item: any) => {
+              acc[item.id] = 2; // set value 2 for each id
+              return acc;
+            }, {});
+            setIsRoundTwo(true);
 
-          setKnownAnswer(obj);
-          nextQuestion();
-        }}
-      >
-        Skip to round 2
-      </Button>
+            setKnownAnswer(obj);
+            nextQuestion();
+          }}
+        >
+          Skip to round 2
+        </Button>
+        <Button
+          onClick={() => {
+            setIsRoundTwo(true);
+
+            setKnownAnswer({
+              "55f97acc-4e37-4c77-9a2e-864e61555be5": 2,
+              "faa83f9d-df95-42ff-82cc-1014a47e8515": 2,
+              "00951171-419c-44d0-8474-c0a49486bb95": 1,
+              "147d9840-0b6b-4aa9-8298-f7dc3221675a": 1,
+            });
+            setUnknownAnswer([
+              "83fafbf3-f28c-4e9e-93e4-a3a3f97ee5e7",
+              "147d9840-0b6b-4aa9-8298-f7dc3221675a",
+              "00951171-419c-44d0-8474-c0a49486bb95",
+            ]);
+            setShowSummary(true);
+            showToaster2();
+          }}
+        >
+          Skip to summary
+        </Button>
+      </div>
+
       <div className=" flex flex-col gap-5">
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight my-5">
           {currentQuestion.question}
