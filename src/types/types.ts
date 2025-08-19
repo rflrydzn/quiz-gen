@@ -14,12 +14,12 @@ export type question = {
   id: string;
   quiz_id: string;
   answer: string;
-  back: string;
+  back: string | null;
   choices: string[];
   created_at: string;
   difficulty: string;
   explanation: string;
-  front: string;
+  front: string | null;
   hint: string;
   question: string;
   type: string;
@@ -64,4 +64,12 @@ export interface CardProps {
 
 export type PracticeQuizUIProps = {
   questions: question[];
+};
+
+export type PracticeModeSummaryProps = {
+  knownAnswer: { [questionId: string]: number };
+  questions: question[];
+  onHandleContinue: () => void;
+  percentageScore: number;
+  summaryKnownCount: number;
 };

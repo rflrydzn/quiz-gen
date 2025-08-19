@@ -1,5 +1,4 @@
 "use client";
-import { PracticeQuizUIProps } from "@/types/types";
 import { useEffect, useRef, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import questions from "@/../test.json";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import PracticeModeSummary from "./PracticeModeSummary";
 const PracticeQuizUI = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -21,26 +20,19 @@ const PracticeQuizUI = () => {
   const [waitingForNext, setWaitingForNext] = useState(false);
   const [isSkipped, setisSkipped] = useState(false);
   const [roundQuestions, setRoundQuestions] = useState(questions);
-  // const [userInput, setUserInput] = useState("");
   const [currentQuestionInterface, setCurrentQuestionInterface] = useState<
     "mcq" | "input"
   >("mcq");
-
   const [firstInput, setFirstInput] = useState("");
   const [secondInput, setSecondInput] = useState("");
   const [isRoundTwo, setIsRoundTwo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [mastered, setMasteredQuestions] = useState<string[]>();
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const firstInputRef = useRef<HTMLInputElement>(null);
   const secondInputRef = useRef<HTMLInputElement>(null);
   const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = roundQuestions.length - 1;
   const correctAnswer = currentQuestion.answer;
   const [isCorrect, setIsCorrect] = useState(false);
-  const isIncorrect = userAnswer !== correctAnswer;
-  const knownCount = Object.keys(knownAnswer).length;
-  const unknownCount = unknownAnswer.length;
   const percentageScore =
     (Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
       (questions.length * 2)) *
@@ -49,10 +41,6 @@ const PracticeQuizUI = () => {
     (acc, curr) => acc + curr,
     0
   );
-  const filterunknown = questions.filter((q, i) =>
-    unknownAnswer.includes(q.id)
-  );
-
   const isOpenEnded = (questionId: string) => {
     return knownAnswer.hasOwnProperty(questionId);
   };
@@ -77,11 +65,11 @@ const PracticeQuizUI = () => {
   };
 
   const showToaster2 = () => {
-    return toast("Practice remaining sets.", {
+    toast("Practice remaining sets.", {
       duration: Infinity,
       action: {
         label: "Continue",
-        onClick: () => handleContinue(),
+        onClick: handleContinue,
       },
     });
   };
@@ -99,12 +87,10 @@ const PracticeQuizUI = () => {
     } else {
       setCurrentIndex((prev) => Math.min(prev + 1, lastQuestionIndex));
     }
-
     if (currentIndex === lastQuestionIndex && isRoundTwo) {
       setShowSummary(true);
       showToaster2();
     }
-
     resetQuestionState();
   };
 
@@ -122,7 +108,6 @@ const PracticeQuizUI = () => {
         [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 0,
       }));
     }
-    setIsTransitioning(true); // Add this line
     setTimeout(() => nextQuestion(), 1000);
   };
 
@@ -145,12 +130,10 @@ const PracticeQuizUI = () => {
     setIsCorrect(false);
     setFirstInput("");
     setSecondInput("");
-    setIsTransitioning(false);
   };
 
   const handleSubmit = () => {
     const attemptValue = retryAttempts === 0 ? firstInput : secondInput;
-
     const lowercaseInput = attemptValue.toLowerCase();
     const lowercaseAnswer = correctAnswer.toLowerCase();
 
@@ -254,138 +237,13 @@ const PracticeQuizUI = () => {
   useEffect(() => console.log("round", isRoundTwo));
   if (showSummary)
     return (
-      <div className="m-10">
-        <div className="space-y-3 flex flex-col">
-          <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
-            Going strong, you can do this.
-          </h1>
-          <Button className="fixed right-0 top-0" onClick={handleContinue}>
-            Learn remaining sets
-          </Button>
-          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-            Total set progress:{" "}
-            {(Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
-              (questions.length * 2)) *
-              100}{" "}
-            %
-          </h4>
-          <div>
-            <div className="w-full flex items-center justify-center">
-              {/* Progress bar */}
-              <div className="relative w-full">
-                <Progress value={percentageScore} className="h-4" />
-
-                {/* Circle count at the end of the progress */}
-                <div
-                  className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
-                  style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
-                >
-                  {summaryKnownCount}
-                </div>
-              </div>
-
-              <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
-                {questions.length * 2}
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-between">
-            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-              Correct
-            </h4>
-            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-              Total questions
-            </h4>
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        <div className="flex flex-col space-y-5">
-          {Object.values(knownAnswer).includes(2) && (
-            <div className="space-y-2">
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Mastered:
-              </h4>
-              {questions
-                .filter((q) => knownAnswer[q.id] === 2)
-                .map((q) => (
-                  <div
-                    className="w-full  flex border rounded-lg p-4  bg-background"
-                    key={q.id}
-                  >
-                    <div className="w-1/4 p-3">
-                      <p className="leading-7 [&:not(:first-child)]:mt-6">
-                        {q.answer}
-                      </p>
-                    </div>
-                    <Separator orientation="vertical" />
-                    <div className="w-3/4 p-3">
-                      <p className="leading-7 [&:not(:first-child)]:mt-6">
-                        {q.question}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {Object.values(knownAnswer).includes(1) && (
-            <div className="space-y-2">
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Partial Understanding:
-              </h4>
-              {questions
-                .filter((q) => knownAnswer[q.id] === 1)
-                .map((q) => (
-                  <div
-                    className="w-full  flex border rounded-lg p-4  bg-background"
-                    key={q.id}
-                  >
-                    <div className="w-1/4 p-3">
-                      <p className="leading-7 [&:not(:first-child)]:mt-6">
-                        {q.answer}
-                      </p>
-                    </div>
-                    <Separator orientation="vertical" />
-                    <div className="w-3/4 p-3">
-                      <p className="leading-7 [&:not(:first-child)]:mt-6">
-                        {q.question}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {questions
-            .filter((q) => !(q.id in knownAnswer))
-            .map((question) => (
-              <div className="space-y-2" key={question.id}>
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Needs Review:
-                </h4>
-
-                <div
-                  className="w-full  flex border rounded-lg p-4  bg-background"
-                  key={question.id}
-                >
-                  <div className="w-1/4 p-3">
-                    <p className="leading-7 [&:not(:first-child)]:mt-6">
-                      {question.answer}
-                    </p>
-                  </div>
-                  <Separator orientation="vertical" />
-                  <div className="w-3/4 p-3">
-                    <p className="leading-7 [&:not(:first-child)]:mt-6">
-                      {question.question}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
+      <PracticeModeSummary
+        questions={questions}
+        knownAnswer={knownAnswer}
+        percentageScore={percentageScore}
+        summaryKnownCount={summaryKnownCount}
+        onHandleContinue={() => handleContinue()}
+      />
     );
   return (
     <div className=" w-full h-screen items-center justify-center flex">
@@ -398,7 +256,6 @@ const PracticeQuizUI = () => {
               return acc;
             }, {});
             setIsRoundTwo(true);
-
             setKnownAnswer(obj);
             nextQuestion();
           }}
@@ -408,7 +265,6 @@ const PracticeQuizUI = () => {
         <Button
           onClick={() => {
             setIsRoundTwo(true);
-
             setKnownAnswer({
               "55f97acc-4e37-4c77-9a2e-864e61555be5": 2,
               "faa83f9d-df95-42ff-82cc-1014a47e8515": 2,
