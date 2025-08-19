@@ -19,11 +19,14 @@ const PracticeQuizUI = () => {
   const [waitingForNext, setWaitingForNext] = useState(false);
   const [isSkipped, setisSkipped] = useState(false);
   const [roundQuestions, setRoundQuestions] = useState(questions);
-  const [userInput, setUserInput] = useState("");
+  // const [userInput, setUserInput] = useState("");
+  const [firstInput, setFirstInput] = useState("");
+  const [secondInput, setSecondInput] = useState("");
   const [isRoundTwo, setIsRoundTwo] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [mastered, setMasteredQuestions] = useState<string[]>();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const secondInputRef = useRef<HTMLInputElement>(null);
   const currentQuestion = roundQuestions[currentIndex];
   const lastQuestionIndex = questions.length - 1;
   const correctAnswer = currentQuestion.answer;
@@ -82,17 +85,7 @@ const PracticeQuizUI = () => {
     if (currentIndex === lastQuestionIndex && isRoundTwo) {
       setShowSummary(true);
     }
-    setUserInput("");
 
-    resetQuestionState();
-  };
-
-  const prevQuestion = () => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
     resetQuestionState();
   };
 
@@ -120,7 +113,7 @@ const PracticeQuizUI = () => {
       }
       return [...prevUnknown, currentQuestion.id];
     });
-    setWaitingForNext(true);
+    setTimeout(() => setWaitingForNext(true), 100);
     showToaster();
   };
   const resetQuestionState = () => {
@@ -130,34 +123,41 @@ const PracticeQuizUI = () => {
     setWaitingForNext(false);
     setisSkipped(false); // ✅ reset skip flag
     setIsCorrect(false);
+    setFirstInput("");
+    setSecondInput("");
   };
 
   const handleSubmit = () => {
-    const lowercaseInput = userInput.toLocaleLowerCase();
-    const lowercaseAnswer = correctAnswer.toLocaleLowerCase();
-    console.log(lowercaseAnswer, lowercaseInput);
+    const attemptValue = retryAttempts === 0 ? firstInput : secondInput;
+
+    const lowercaseInput = attemptValue.toLowerCase();
+    const lowercaseAnswer = correctAnswer.toLowerCase();
+
     if (lowercaseInput === lowercaseAnswer) {
       setIsCorrect(true);
       handleKnown();
+    } else {
+      setRetryAttempts((prev) => {
+        const newCount = prev + 1;
+        if (newCount === 2) handleUnknown();
+        return newCount;
+      });
     }
-
-    if (lowercaseInput !== lowercaseAnswer) {
-      setRetryAttempts(retryAttempts + 1);
-    }
-    inputRef.current?.blur(); // removes focus
+    firstInputRef.current?.blur(); // optional: remove focus
+    secondInputRef.current?.blur();
   };
   // Check answer when user selects
-  useEffect(() => inputRef.current?.focus(), [currentIndex]);
+  useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
   useEffect(() => console.log("known", knownAnswer));
-
-  const getSummary = () => {
-    const filterMastered = Object.keys(knownAnswer).filter(
-      (qid) => knownAnswer[qid]
-    );
-    setMasteredQuestions(filterMastered);
-    setShowSummary(true);
-  };
+  useEffect(() => console.log("unknown", unknownAnswer));
   useEffect(() => {
+    if (retryAttempts === 1) {
+      secondInputRef.current?.focus();
+    }
+  }, [retryAttempts]);
+
+  useEffect(() => {
+    if (isRoundTwo) return;
     if (userAnswer === "") return;
 
     if (userAnswer !== correctAnswer) {
@@ -268,6 +268,21 @@ const PracticeQuizUI = () => {
     );
   return (
     <div className=" w-full h-screen items-center justify-center flex">
+      <Button
+        className="fixed left-1/2 top-0"
+        onClick={() => {
+          const obj = questions.reduce((acc: any, item: any) => {
+            acc[item.id] = 2; // set value 2 for each id
+            return acc;
+          }, {});
+          setIsRoundTwo(true);
+
+          setKnownAnswer(obj);
+          nextQuestion();
+        }}
+      >
+        Skip to round 2
+      </Button>
       <div className=" flex flex-col gap-5">
         <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight my-5">
           {currentQuestion.question}
@@ -294,14 +309,8 @@ const PracticeQuizUI = () => {
           {isOpenEnded(currentQuestion.id) && isRoundTwo ? (
             <div className="flex flex-col gap-3">
               <Input
-                onChange={(e) => setUserInput(e.target.value)}
-                value={
-                  retryAttempts === 1
-                    ? wrongAnswers[0]
-                    : isSkipped
-                    ? "Skipped"
-                    : userInput
-                }
+                onChange={(e) => setFirstInput(e.target.value)}
+                value={firstInput}
                 disabled={retryAttempts !== 0 || isSkipped}
                 className={
                   isCorrect && retryAttempts === 1
@@ -315,19 +324,30 @@ const PracticeQuizUI = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSubmit();
                 }}
-                ref={inputRef}
+                ref={firstInputRef}
+                placeholder={isSkipped ? "Skipped" : ""}
               />
               <Input
                 className={
-                  retryAttempts === 0
+                  retryAttempts === 0 && !isSkipped
                     ? "hidden"
                     : `inline ${
-                        isCorrect || isSkipped ? "border-green-300" : ""
+                        isCorrect || isSkipped || retryAttempts === 2
+                          ? "border-green-300"
+                          : ""
                       }`
                 }
-                onChange={(e) => setUserInput(e.target.value)}
-                value={isSkipped ? correctAnswer : userInput ?? ""}
+                onChange={(e) => setSecondInput(e.target.value)}
+                value={
+                  isSkipped || retryAttempts === 2
+                    ? correctAnswer
+                    : secondInput ?? ""
+                }
                 disabled={retryAttempts !== 1}
+                ref={secondInputRef}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmit();
+                }}
               />
               <div className="self-end">
                 <Button onClick={handleSubmit}>Submit</Button>
@@ -380,18 +400,6 @@ const PracticeQuizUI = () => {
             </div>
           )}
         </div>
-
-        {/* <div className="mt-4 flex gap-2">
-          <Button onClick={prevQuestion} disabled={currentIndex === 0}>
-            Previous
-          </Button>
-          <Button
-            onClick={nextQuestion}
-            disabled={currentIndex === lastQuestionIndex}
-          >
-            Next
-          </Button>
-        </div> */}
       </div>
     </div>
   );
