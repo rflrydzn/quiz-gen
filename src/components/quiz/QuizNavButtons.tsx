@@ -7,6 +7,7 @@ import {
   ChevronRight,
   RotateCcw,
   Shuffle,
+  Lightbulb,
   Plus,
   Check,
   X,
@@ -23,6 +24,7 @@ type QuizletControlsProps = {
   totalQuestions: number;
   roundQuestionLength: number;
   isVerticalLayout: boolean;
+  hint: string;
   onProgressMode: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -38,6 +40,7 @@ export default function QuizNavButtons({
   totalQuestions,
   roundQuestionLength,
   isVerticalLayout,
+  hint,
   onProgressMode,
   onPrev,
   onNext,
@@ -140,6 +143,17 @@ export default function QuizNavButtons({
 
         {/* Right: Restart & Shuffle */}
         <div className="absolute right-0 flex gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost">
+                <Lightbulb />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{hint}</p>
+            </TooltipContent>
+          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button onClick={onRestart} variant="ghost">

@@ -73,6 +73,7 @@ Return only the questions and answers in JSON format.`;
         type: { type: Type.STRING },
         front: { type: Type.STRING },
         back: { type: Type.STRING },
+        hint: { type: Type.STRING },
       };
       propertyOrdering = ["type", "front", "back"];
     } else if (quizStyle === "Practice Mode") {

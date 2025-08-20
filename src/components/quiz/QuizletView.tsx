@@ -127,6 +127,7 @@ function QuizletView({
         onRestart={onRestart}
         onShuffle={onShuffle}
         roundQuestionLength={questions.length}
+        hint={questions[currentIndex].hint}
       />
     </div>
   );
