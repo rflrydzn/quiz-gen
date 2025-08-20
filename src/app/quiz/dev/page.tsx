@@ -291,6 +291,8 @@ const PracticeQuizUI = () => {
                         ? "Good job"
                         : isCorrect && retryAttempts === 1
                         ? "You're getting it! You'll see this again later."
+                        : retryAttempts === 2 && !isCorrect
+                        ? "Let's keep practicing! You'll see this again later."
                         : retryAttempts >= 2
                         ? "You will see this again later"
                         : isSkipped
@@ -346,7 +348,11 @@ const PracticeQuizUI = () => {
                             animate={{ opacity: 1, scale: 1, rotate: 0 }}
                             exit={{ opacity: 0, scale: 0, rotate: 45 }}
                             transition={{ duration: 0.25 }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500"
+                            className={`absolute right-2 top-1/2 -translate-y-1/2 ${
+                              isSkipped && retryAttempts === 0
+                                ? " text-muted"
+                                : "text-red-500"
+                            }`}
                           >
                             <X size={20} />
                           </motion.div>
@@ -369,7 +375,11 @@ const PracticeQuizUI = () => {
                               : "inline mb-2"
                           }
                         >
-                          Let's try again
+                          {retryAttempts === 2 || isSkipped
+                            ? "Correct Answer"
+                            : retryAttempts === 1 && !isCorrect
+                            ? "Let's try again"
+                            : ""}
                         </Label>
                         <div className="relative">
                           <AnimatePresence mode="wait">
@@ -418,19 +428,20 @@ const PracticeQuizUI = () => {
 
                           {/* ✅ ❌ animation for second input */}
                           <AnimatePresence mode="wait">
-                            {((isCorrect && retryAttempts === 1) ||
-                              isSkipped) && (
-                              <motion.div
-                                key="check-2"
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
-                              >
-                                <Check size={20} />
-                              </motion.div>
-                            )}
+                            {(isCorrect && retryAttempts === 1) ||
+                              isSkipped ||
+                              (retryAttempts === 2 && (
+                                <motion.div
+                                  key="check-2"
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                                >
+                                  <Check size={20} />
+                                </motion.div>
+                              ))}
                             {!isCorrect &&
                               retryAttempts === 0 &&
                               !isSkipped && (
@@ -508,6 +519,21 @@ const PracticeQuizUI = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      <Button
+        className="fixed left-1/2 top-0"
+        onClick={() => {
+          const obj = questions.reduce((acc: any, item: any) => {
+            acc[item.id] = 2; // set value 2 for each id
+            return acc;
+          }, {});
+          setIsRoundTwo(true);
+
+          setKnownAnswer(obj);
+          nextQuestion();
+        }}
+      >
+        Skip to round 2
+      </Button>
     </div>
   );
 };
