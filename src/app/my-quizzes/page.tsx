@@ -5,6 +5,8 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import EmptyQuizGraphic from "@/../public/empty-quiz.svg";
+import Image from "next/image";
 type Quiz = {
   id: string;
   style: string;
@@ -46,7 +48,22 @@ export default function MyQuizzes() {
   });
 
   if (isLoading) return <p>Loading...</p>;
-  if (quizzes?.length === 0) return <p>No quizzes yet. Generate one!</p>;
+  if (quizzes?.length === 0)
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 h-screen">
+        <Image
+          src={EmptyQuizGraphic}
+          alt="Empty quiz"
+          width={500}
+          height={500}
+          className="text-black"
+        />
+        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+          No Quiz Found
+        </h3>
+        <Button>Generate</Button>
+      </div>
+    );
   if (error) return <p className="text-red-600">{(error as Error).message}</p>;
   return (
     <div className="p-6">
