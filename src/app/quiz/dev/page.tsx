@@ -55,21 +55,11 @@ const PracticeQuizUI = () => {
     return newArray;
   };
 
-  const showToaster = () => {
+  const nextQuestionToaster = () => {
     return toast("Press any key to continue.", {
       action: {
         label: "Continue",
         onClick: () => nextQuestion(),
-      },
-    });
-  };
-
-  const showToaster2 = () => {
-    toast("Practice remaining sets.", {
-      duration: Infinity,
-      action: {
-        label: "Continue",
-        onClick: handleContinue,
       },
     });
   };
@@ -89,7 +79,6 @@ const PracticeQuizUI = () => {
     }
     if (currentIndex === lastQuestionIndex && isRoundTwo) {
       setShowSummary(true);
-      showToaster2();
     }
     resetQuestionState();
   };
@@ -119,7 +108,7 @@ const PracticeQuizUI = () => {
       return [...prevUnknown, currentQuestion.id];
     });
     setTimeout(() => setWaitingForNext(true), 100);
-    showToaster();
+    nextQuestionToaster();
   };
   const resetQuestionState = () => {
     setUserAnswer("");
@@ -166,6 +155,16 @@ const PracticeQuizUI = () => {
     setKnownAnswer(mastered);
     console.log("reset", roundQuestions);
   };
+
+  const handleReset = () => {
+    setRoundQuestions(questions);
+    setShowSummary(false);
+    setIsRoundTwo(false);
+    setUnknownAnswer([]);
+    setKnownAnswer({});
+    setCurrentIndex(0);
+    toast.dismiss();
+  };
   // Check answer when user selects
   useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
   useEffect(() => console.log("known", knownAnswer));
@@ -196,6 +195,7 @@ const PracticeQuizUI = () => {
       }
     }
   }, [userAnswer, correctAnswer, currentQuestion.id]);
+
   // Update this in your nextQuestion function or when currentIndex changes
   useEffect(() => {
     // Determine interface type when question loads, before any user interaction
@@ -243,6 +243,7 @@ const PracticeQuizUI = () => {
         percentageScore={percentageScore}
         summaryKnownCount={summaryKnownCount}
         onHandleContinue={() => handleContinue()}
+        onHandleReset={() => handleReset()}
       />
     );
   return (
@@ -277,7 +278,6 @@ const PracticeQuizUI = () => {
               "00951171-419c-44d0-8474-c0a49486bb95",
             ]);
             setShowSummary(true);
-            showToaster2();
           }}
         >
           Skip to summary

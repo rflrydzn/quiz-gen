@@ -70,6 +70,7 @@ export type PracticeModeSummaryProps = {
   knownAnswer: { [questionId: string]: number };
   questions: question[];
   onHandleContinue: () => void;
+  onHandleReset: () => void;
   percentageScore: number;
   summaryKnownCount: number;
 };

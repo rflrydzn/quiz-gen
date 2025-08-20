@@ -2,6 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@radix-ui/react-separator";
 import { PracticeModeSummaryProps } from "@/types/types";
+import { Confetti, type ConfettiRef } from "@/components/magicui/confetti";
+import { useRef, useEffect } from "react";
+import { toast } from "sonner";
+import { ChevronRight, RotateCcw } from "lucide-react";
 
 const PracticeModeSummary = ({
   knownAnswer,
@@ -9,15 +13,71 @@ const PracticeModeSummary = ({
   onHandleContinue,
   percentageScore,
   summaryKnownCount,
+  onHandleReset,
 }: PracticeModeSummaryProps) => {
+  const confettiRef = useRef<ConfettiRef>(null);
+  const firedRef = useRef(false);
+  const masteredCount = Object.values(knownAnswer).filter(
+    (v) => v === 2
+  ).length;
+  const remainingCount = Object.values(knownAnswer).length - masteredCount;
+  const handleResetToaster = () => {
+    toast(
+      <div className="flex justify-center items-center">
+        <RotateCcw className="mx-2" />
+        You’ve mastered all questions.
+      </div>,
+      {
+        duration: Infinity,
+        action: {
+          label: "Reset",
+          onClick: onHandleReset,
+        },
+      }
+    );
+  };
+
+  const handleContinueToaster = () => {
+    toast(
+      <div className="flex justify-center items-center">
+        <ChevronRight />
+        Study the remaining {remainingCount}{" "}
+        {remainingCount === 1 ? "term" : "terms"}
+      </div>,
+      {
+        duration: Infinity,
+        action: {
+          label: "Continue",
+          onClick: onHandleContinue,
+        },
+      }
+    );
+  };
+  const isPerfect = summaryKnownCount === questions.length * 2;
+  useEffect(() => {
+    if (isPerfect) confettiRef.current?.fire({});
+    if (firedRef.current) return; // already fired once
+    firedRef.current = true;
+    if (isPerfect) {
+      handleResetToaster();
+    } else {
+      handleContinueToaster();
+    }
+  }, [isPerfect]);
+
   return (
     <div className="m-10">
+      <Confetti
+        ref={confettiRef}
+        className="absolute left-0 top-0 z-0 size-full pointer-events-none"
+        manualstart={true}
+      />
       <div className="space-y-3 flex flex-col">
         <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
           Going strong, you can do this.
         </h1>
-        {/* <Button className="fixed right-0 top-0" onClick={onHandleContinue}>
-          Learn remaining sets
+        {/* <Button className="fixed right-0 top-0" onClick={onHandleReset}>
+          Reset
         </Button> */}
         <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
           Total set progress:{" "}
