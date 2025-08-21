@@ -57,20 +57,24 @@ const QuestionType = ({
   useEffect(() => onSelectedQuestionType(selected), [selected]);
 
   return (
-    <div>
-      <Label>Question Type</Label>
-      {options.map((option) => (
-        <Toggle
-          variant="outline"
-          key={option}
-          pressed={selected.includes(option)}
-          onPressedChange={() => toggleOption(option)}
-          className="px-4 py-2 text-sm rounded-2xl"
-          disabled={!allowedTypes.includes(option)}
-        >
-          {option}
-        </Toggle>
-      ))}
+    <div className="w-full flex flex-col gap-2">
+      <Label className="scroll-m-20 text-xl font-semibold tracking-tight">
+        Question Type
+      </Label>
+      <div className="flex gap-3 flex-wrap">
+        {options.map((option) => (
+          <Toggle
+            variant="outline"
+            key={option}
+            pressed={selected.includes(option)}
+            onPressedChange={() => toggleOption(option)}
+            className="px-4 py-2 text-sm rounded-2xl"
+            disabled={!allowedTypes.includes(option)}
+          >
+            {option}
+          </Toggle>
+        ))}
+      </div>
     </div>
   );
 };

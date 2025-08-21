@@ -88,7 +88,12 @@ const QuestionCount = ({
     <div className="space-y-4">
       {/* Total count input */}
       <div className="flex justify-between items-center">
-        <Label htmlFor="question-count">Total Questions</Label>
+        <Label
+          htmlFor="question-count"
+          className="scroll-m-20 text-xl font-semibold tracking-tight"
+        >
+          Total Questions
+        </Label>
         <Input
           id="question-count"
           type="number"

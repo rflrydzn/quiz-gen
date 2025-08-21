@@ -9,6 +9,8 @@ import QuizLanguage from "@/components/QuizLanguage";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { TabsDemo } from "@/components/ContextTabs";
+import { Loader2Icon } from "lucide-react";
 
 type QuizOptions = {
   questionCounts: number;
@@ -19,12 +21,14 @@ type QuizOptions = {
   textContent: string;
   distribution: { type: string; count: number }[];
 };
+
 const QuizSettings = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
     questionCounts: 5,
-    quizStyle: "",
+    quizStyle: "Flashcard",
     questionTypes: [],
     difficulty: "medium",
     fileUrl: "",
@@ -32,6 +36,7 @@ const QuizSettings = () => {
     distribution: [{ type: "Multiple Choice", count: 10 }],
   });
   const supabase = createClient();
+
   useEffect(() => {
     const fetchUser = async () => {
       const {
@@ -42,99 +47,117 @@ const QuizSettings = () => {
     };
     fetchUser();
   }, []);
+
   const handleClick = async () => {
-    const res = await fetch("/api/generate-quiz", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileUrl: quizoptions.fileUrl,
-        textContent: quizoptions.textContent,
-        quizStyle: quizoptions.quizStyle,
-        difficulty: quizoptions.difficulty,
-        numberOfItems: quizoptions.questionCounts,
-        types: quizoptions.distribution.map((item) => ({
-          type: item.type,
-          count: item.count,
-        })),
-      }),
-    });
+    try {
+      console.log("Starting quiz generation...");
+      setIsLoading(true);
+      console.log("isLoading set to true");
 
-    if (!res.ok) {
-      const error = await res.json();
-      console.error("Error generating quiz:", error);
-      return;
+      const res = await fetch("/api/generate-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileUrl: quizoptions.fileUrl,
+          textContent: quizoptions.textContent,
+          quizStyle: quizoptions.quizStyle,
+          difficulty: quizoptions.difficulty,
+          numberOfItems: quizoptions.questionCounts,
+          types: quizoptions.distribution.map((item) => ({
+            type: item.type,
+            count: item.count,
+          })),
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("Error generating quiz:", error);
+        return;
+      }
+
+      console.log("Quiz generated successfully");
+      const data = await res.json();
+      console.log("Quiz data:", data);
+
+      // 2. Save quiz metadata in Supabase
+      const { data: quiz, error: quizError } = await supabase
+        .from("quizzes")
+        .insert({
+          user_id: user?.id,
+          style: quizoptions.quizStyle,
+          difficulty: quizoptions.difficulty,
+          number_of_items: quizoptions.questionCounts,
+          source_file_url: quizoptions.fileUrl || null,
+          source_text: quizoptions.textContent || null,
+        })
+        .select("id")
+        .single();
+
+      if (quizError) {
+        console.error("Error saving quiz:", quizError);
+        return;
+      }
+
+      console.log("Quiz saved successfully:", quiz);
+
+      // 3. Format and save questions using quiz.id
+      const formattedQuestions = data.map((q: any) => ({
+        quiz_id: quiz.id, // use Supabase quiz ID, not q.id
+        type: q.type,
+        question: q.question ?? null,
+        difficulty: q.difficulty ?? null,
+        choices: q.choices ?? [],
+        answer: q.answer ?? null,
+        hint: q.hint ?? null,
+        explanation: q.explanation ?? null,
+        front: q.front ?? null,
+        back: q.back ?? null,
+      }));
+
+      console.log("Formatted questions:", formattedQuestions);
+
+      const { error: questionsError } = await supabase
+        .from("questions")
+        .insert(formattedQuestions);
+
+      if (questionsError) {
+        console.error("Error saving questions:", questionsError);
+        return;
+      }
+
+      console.log("Questions saved successfully");
+      router.push(`/quiz/${quiz.id}`);
+    } catch (error) {
+      console.error("Unexpected error:", error);
+    } finally {
+      // This ensures isLoading is always set back to false
+      console.log("Setting isLoading back to false");
+      setIsLoading(false);
     }
-
-    console.log("Quiz generated successfully");
-    const data = await res.json();
-    console.log("Quiz data:", data);
-
-    // 2. Save quiz metadata in Supabase
-    const { data: quiz, error: quizError } = await supabase
-      .from("quizzes")
-      .insert({
-        user_id: user?.id,
-        style: quizoptions.quizStyle,
-        difficulty: quizoptions.difficulty,
-        number_of_items: quizoptions.questionCounts,
-        source_file_url: quizoptions.fileUrl || null,
-        source_text: quizoptions.textContent || null,
-      })
-      .select("id")
-      .single();
-
-    if (quizError) {
-      console.error("Error saving quiz:", quizError);
-      return;
-    }
-
-    console.log("Quiz saved successfully:", quiz);
-
-    // 3. Format and save questions using quiz.id
-    const formattedQuestions = data.map((q: any) => ({
-      quiz_id: quiz.id, // use Supabase quiz ID, not q.id
-      type: q.type,
-      question: q.question ?? null,
-      difficulty: q.difficulty ?? null,
-      choices: q.choices ?? [],
-      answer: q.answer ?? null,
-      hint: q.hint ?? null,
-      explanation: q.explanation ?? null,
-      front: q.front ?? null,
-      back: q.back ?? null,
-    }));
-
-    console.log("Formatted questions:", formattedQuestions);
-
-    const { error: questionsError } = await supabase
-      .from("questions")
-      .insert(formattedQuestions);
-
-    if (questionsError) {
-      console.error("Error saving questions:", questionsError);
-      return;
-    }
-
-    console.log("Questions saved successfully");
-    router.push(`/quiz/${quiz.id}`);
   };
+
   useEffect(() => {
     console.log("Quiz options updated:", quizoptions);
   }, [quizoptions]);
+
+  useEffect(() => {
+    console.log("isLoading changed:", isLoading);
+  }, [isLoading]);
+
   return (
-    <div className="border-2 p-5 gap-5 flex flex-col">
-      {/* <TextareaWithLabel
-        onUpload={(url) => setQuizOptions({ ...quizoptions, fileUrl: url })}
+    <div className=" flex flex-col gap-7 w-full max-w-5xl mx-auto">
+      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+        Generate flashcard set
+      </h1>
+      <TabsDemo
         value={quizoptions.textContent}
         onChange={(newText) =>
           setQuizOptions({ ...quizoptions, textContent: newText })
         }
-      /> */}
-      <QuizStyle
-        onSelectedStyle={(style) =>
-          setQuizOptions({ ...quizoptions, quizStyle: style })
-        }
+        onUpload={(url) => setQuizOptions({ ...quizoptions, fileUrl: url })}
       />
+
       <QuestionType
         quizStyle={quizoptions.quizStyle!}
         onSelectedQuestionType={(selected) =>
@@ -166,14 +189,31 @@ const QuizSettings = () => {
           setQuizOptions({ ...quizoptions, questionCounts: count })
         }
       />
-      <QuestionDifficultySelector
-        onSelectedDifficulty={(difficulty) =>
-          setQuizOptions({ ...quizoptions, difficulty: difficulty })
-        }
-      />
+      <div className="flex w-full gap-7 items-center justify-center">
+        <QuestionDifficultySelector
+          onSelectedDifficulty={(difficulty) =>
+            setQuizOptions({ ...quizoptions, difficulty: difficulty })
+          }
+        />
 
-      <QuizLanguage />
-      <Button onClick={handleClick}>Generate</Button>
+        <QuizLanguage />
+      </div>
+      <div className="flex justify-between py-10">
+        <p className="leading-7 [&:not(:first-child)]:mt-6 max-w-2xl">
+          This product is enhanced by AI and may provide incorrect or
+          problematic content. Do not enter personal data.
+        </p>
+        <Button onClick={handleClick} size="lg" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+              Please wait
+            </>
+          ) : (
+            "Generate"
+          )}
+        </Button>
+      </div>
     </div>
   );
 };
