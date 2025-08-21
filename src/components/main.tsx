@@ -9,7 +9,7 @@ const MainUI = () => {
   return (
     <div className="flex">
       <div className="w-1/3">
-        <QuizSettings onGenerate={(data) => setQuizId(data)} />
+        {/* <QuizSettings onGenerate={(data) => setQuizId(data)} /> */}
       </div>
 
       <div className="w-3/4">

@@ -1,24 +1,44 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   FlashcardBW,
   ExamModeIcon,
   PracticeModeIcon,
 } from "@/components/Illustrations";
 import { Card, CardTitle } from "./ui/card";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const CreateQuiz = () => {
+  const [step, setStep] = useState<"style" | "flashcard">("style");
+  const router = useRouter();
+
+  const handleSelectStyle = (style: string) => {
+    if (style === "Flashcard") {
+      setStep("flashcard");
+    } else {
+      // Direct redirect for other styles
+      router.push(`/quiz/create?style=${style.toLowerCase()}`);
+    }
+  };
+
+  const handleFlashcardChoice = (type: "ai" | "manual") => {
+    if (type === "manual") router.push(`/create-flashcard`);
+    else {
+      router.push("/ai-flashcard");
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -26,42 +46,88 @@ const CreateQuiz = () => {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Select a quiz style</DialogTitle>
-          <DialogDescription>
-            Choose your preferred quiz format. You can change this later.
-          </DialogDescription>
-        </DialogHeader>
+        {step === "style" && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Select a quiz style</DialogTitle>
+              <DialogDescription>
+                Choose your preferred quiz format.
+              </DialogDescription>
+            </DialogHeader>
 
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <Card className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer ">
-            <FlashcardBW className="w-12 h-12 mb-2" />
-            <CardTitle className="text-center text-sm font-medium">
-              Flashcard
-            </CardTitle>
-          </Card>
+            <div className="grid grid-cols-3 gap-2">
+              <Card
+                onClick={() => handleSelectStyle("Flashcard")}
+                className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
+              >
+                <FlashcardBW className="w-20 h-20" />
+                <CardTitle className="text-center text-sm font-medium">
+                  Flashcard
+                </CardTitle>
+              </Card>
 
-          <Card className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition">
-            <PracticeModeIcon className="w-12 h-12 mb-2" />
-            <CardTitle className="text-center text-sm font-medium">
-              Practice
-            </CardTitle>
-          </Card>
+              <Card
+                onClick={() => handleSelectStyle("Practice")}
+                className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
+              >
+                <PracticeModeIcon className="w-20 h-20" />
+                <CardTitle className="text-center text-sm font-medium">
+                  Practice
+                </CardTitle>
+              </Card>
 
-          <Card className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition">
-            <ExamModeIcon className="w-12 h-12 mb-2" />
-            <CardTitle className="text-center text-sm font-medium">
-              Exam
-            </CardTitle>
-          </Card>
-        </div>
+              <Card
+                onClick={() => handleSelectStyle("Exam")}
+                className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
+              >
+                <ExamModeIcon className="w-20 h-20 " />
+                <CardTitle className="text-center text-sm font-medium">
+                  Exam
+                </CardTitle>
+              </Card>
+            </div>
+          </>
+        )}
 
-        <DialogFooter className="mt-6 flex justify-end gap-2">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button type="submit">Save</Button>
-        </DialogFooter>
+        {step === "flashcard" && (
+          <>
+            <DialogHeader className="flex flex-row items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setStep("style")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <DialogTitle>Flashcard Creation</DialogTitle>
+                <DialogDescription>
+                  Choose how you want to create your flashcards.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <Card
+                onClick={() => handleFlashcardChoice("ai")}
+                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
+              >
+                <CardTitle className="text-center text-sm font-medium">
+                  AI Generated
+                </CardTitle>
+              </Card>
+
+              <Card
+                onClick={() => handleFlashcardChoice("manual")}
+                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
+              >
+                <CardTitle className="text-center text-sm font-medium">
+                  Manual
+                </CardTitle>
+              </Card>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
