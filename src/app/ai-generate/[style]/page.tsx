@@ -8,7 +8,7 @@ import QuizStyle from "@/components/QuizStyle";
 import QuizLanguage from "@/components/QuizLanguage";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { TabsDemo } from "@/components/ContextTabs";
 import { Loader2Icon } from "lucide-react";
 
@@ -24,11 +24,12 @@ type QuizOptions = {
 
 const QuizSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const params = useParams<{ style: string }>();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
     questionCounts: 5,
-    quizStyle: "Flashcard",
+    quizStyle: "",
     questionTypes: [],
     difficulty: "medium",
     fileUrl: "",
@@ -51,6 +52,7 @@ const QuizSettings = () => {
   const handleClick = async () => {
     try {
       console.log("Starting quiz generation...");
+      console.log("options", quizoptions);
       setIsLoading(true);
       console.log("isLoading set to true");
 
@@ -136,6 +138,20 @@ const QuizSettings = () => {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+    if (params?.style) {
+      const styleMap: Record<string, string> = {
+        flashcard: "Flashcard",
+        practice: "Practice Mode",
+        exam: "Exam Style",
+      };
+
+      setQuizOptions((prev) => ({
+        ...prev,
+        quizStyle: styleMap[params.style] || "Default",
+      }));
+    }
+  }, [params?.style]);
 
   useEffect(() => {
     console.log("Quiz options updated:", quizoptions);
@@ -148,7 +164,7 @@ const QuizSettings = () => {
   return (
     <div className=" flex flex-col gap-7 w-full max-w-5xl mx-auto">
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-        Generate flashcard set
+        Generate {quizoptions.quizStyle}
       </h1>
       <TabsDemo
         value={quizoptions.textContent}
@@ -157,6 +173,12 @@ const QuizSettings = () => {
         }
         onUpload={(url) => setQuizOptions({ ...quizoptions, fileUrl: url })}
       />
+
+      {/* <QuizStyle
+        onSelectedStyle={(style) =>
+          setQuizOptions({ ...quizoptions, quizStyle: style })
+        }
+      /> */}
 
       <QuestionType
         quizStyle={quizoptions.quizStyle!}

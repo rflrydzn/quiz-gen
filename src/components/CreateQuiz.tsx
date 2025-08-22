@@ -20,22 +20,22 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const CreateQuiz = () => {
-  const [step, setStep] = useState<"style" | "flashcard">("style");
+  const [step, setStep] = useState<"style" | "flashcard" | "practice">("style");
   const router = useRouter();
 
   const handleSelectStyle = (style: string) => {
     if (style === "Flashcard") {
       setStep("flashcard");
-    } else {
+    } else if (style === "Practice") {
       // Direct redirect for other styles
-      router.push(`/quiz/create?style=${style.toLowerCase()}`);
+      setStep("practice");
     }
   };
 
   const handleFlashcardChoice = (type: "ai" | "manual") => {
     if (type === "manual") router.push(`/create-flashcard`);
     else {
-      router.push("/ai-flashcard");
+      router.push("/ai-generate/flashcard");
     }
   };
 
@@ -123,6 +123,55 @@ const CreateQuiz = () => {
               >
                 <CardTitle className="text-center text-sm font-medium">
                   Manual
+                </CardTitle>
+              </Card>
+            </div>
+          </>
+        )}
+
+        {step === "practice" && (
+          <>
+            <DialogHeader className="flex flex-row items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setStep("style")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <DialogTitle>Flashcard Creation</DialogTitle>
+                <DialogDescription>
+                  Choose how you want to create your practice quiz.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <Card
+                onClick={() => handleFlashcardChoice("ai")}
+                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
+              >
+                <CardTitle className="text-center text-sm font-medium">
+                  AI Generated
+                </CardTitle>
+              </Card>
+
+              <Card
+                onClick={() => handleFlashcardChoice("manual")}
+                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
+              >
+                <CardTitle className="text-center text-sm font-medium">
+                  Manual
+                </CardTitle>
+              </Card>
+
+              <Card
+                onClick={() => handleFlashcardChoice("ai")}
+                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
+              >
+                <CardTitle className="text-center text-sm font-medium">
+                  From flashcards
                 </CardTitle>
               </Card>
             </div>
