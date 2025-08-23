@@ -6,6 +6,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 type quiz = {
   id: string;
   user_id: string;
@@ -232,12 +233,25 @@ export default function ExamQuizUI({
       </div>
 
       {questions.map((q: any, index: number) => (
-        <div key={q.id} className="border p-4 rounded-lg mb-4">
+        <div key={q.id} className=" p-4  mb-4">
           <p className="font-semibold">
             {index + 1}. {q.question}
           </p>
-
-          {q.choices && (
+          <RadioGroup defaultValue="comfortable">
+            <div className="flex items-center gap-3">
+              <RadioGroupItem value="default" id="r1" />
+              <Label htmlFor="r1">Default</Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioGroupItem value="comfortable" id="r2" />
+              <Label htmlFor="r2">Comfortable</Label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioGroupItem value="compact" id="r3" />
+              <Label htmlFor="r3">Compact</Label>
+            </div>
+          </RadioGroup>
+          {/* {q.choices && (
             <ToggleGroup
               type="single"
               variant="outline"
@@ -269,9 +283,9 @@ export default function ExamQuizUI({
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
-          )}
+          )} */}
 
-          {q.type === "Open-Ended" && (
+          {/* {q.type === "Open-Ended" && (
             <div className="grid w-full gap-3">
               <Textarea
                 disabled={quiz.status === "taken"}
@@ -289,7 +303,7 @@ export default function ExamQuizUI({
                 {aiFeedback[q.id]?.grade ?? "Your answer will be graded by AI."}
               </p>
             </div>
-          )}
+          )} */}
         </div>
       ))}
       <Button onClick={handleSubmitScore} hidden={submitted}>

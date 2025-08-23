@@ -1,0 +1,62 @@
+[
+  {
+    "quiz_id": "6230edfc-70c8-4cbc-a86c-2f924341561c",
+    "type": "Multiple Choice",
+    "question": "What is the massive star at the center of our solar system that provides light and heat?",
+    "difficulty": "medium",
+    "choices": ["Earth", "Mars", "The Sun", "Jupiter"],
+    "answer": "The Sun",
+    "hint": null,
+    "explanation": null,
+    "front": null,
+    "back": null
+  },
+  {
+    "quiz_id": "6230edfc-70c8-4cbc-a86c-2f924341561c",
+    "type": "True/False",
+    "question": "Planets in our solar system orbit the Sun in perfectly circular paths.",
+    "difficulty": "medium",
+    "choices": [],
+    "answer": "False",
+    "hint": null,
+    "explanation": null,
+    "front": null,
+    "back": null
+  },
+  {
+    "quiz_id": "6230edfc-70c8-4cbc-a86c-2f924341561c",
+    "type": "True/False",
+    "question": "The solar system was formed approximately 4.6 billion years ago.",
+    "difficulty": "medium",
+    "choices": [],
+    "answer": "True",
+    "hint": null,
+    "explanation": null,
+    "front": null,
+    "back": null
+  },
+  {
+    "quiz_id": "6230edfc-70c8-4cbc-a86c-2f924341561c",
+    "type": "Fill in the Blank",
+    "question": "The solar system contains exactly ______ planets.",
+    "difficulty": "medium",
+    "choices": [],
+    "answer": "eight",
+    "hint": null,
+    "explanation": null,
+    "front": null,
+    "back": null
+  },
+  {
+    "quiz_id": "6230edfc-70c8-4cbc-a86c-2f924341561c",
+    "type": "Open-Ended",
+    "question": "Besides the Sun and the eight major planets, list at least three other types of celestial bodies mentioned as part of the solar system.",
+    "difficulty": "medium",
+    "choices": [],
+    "answer": "Moons, dwarf planets (like Pluto), asteroids, comets, and meteoroids.",
+    "hint": null,
+    "explanation": null,
+    "front": null,
+    "back": null
+  }
+]
