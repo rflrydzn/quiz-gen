@@ -49,17 +49,17 @@ const QuizSettings = () => {
     fetchUser();
   }, []);
 
-  const downloadJSON = (data: any, filename: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  // const downloadJSON = (data: any, filename: string) => {
+  //   const blob = new Blob([JSON.stringify(data, null, 2)], {
+  //     type: "application/json",
+  //   });
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.download = filename;
+  //   link.click();
+  //   URL.revokeObjectURL(url);
+  // };
 
   const handleClick = async () => {
     try {
@@ -147,7 +147,7 @@ const QuizSettings = () => {
       };
 
       // Download as file
-      downloadJSON(exportData, `quiz-${quiz.id}.json`);
+      // downloadJSON(exportData, `quiz-${quiz.id}.json`);
 
       router.push(`/quiz/${quiz.id}`);
     } catch (error) {

@@ -7,6 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { X } from "lucide-react";
 type quiz = {
   id: string;
   user_id: string;
@@ -43,6 +44,9 @@ export default function ExamQuizUI({
   quiz: quiz;
   questions: question[];
 }) {
+  const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [isTaken, setIsTaken] = useState(false);
+
   useEffect(() => {
     const loadSavedAnswers = async () => {
       const { data, error } = await supabase
@@ -51,6 +55,13 @@ export default function ExamQuizUI({
         .eq("quiz_id", quiz.id)
         .eq("user_id", quiz.user_id);
 
+      const { data: quizdata, error: quizerror } = await supabase
+        .from("quizzes")
+        .select("status")
+        .eq("id", quiz.id)
+        .single();
+      console.log("data", quizdata);
+      if (quizdata?.status === "taken") setIsTaken(true);
       if (error) {
         console.error("Error loading saved answers", error);
         return;
@@ -97,7 +108,9 @@ export default function ExamQuizUI({
   const [userAnswers, setUserAnswers] = useState<{
     [questionId: string]: string;
   }>({});
-  const [correctAnswers, setCorrectAnswers] = useState<any>([]);
+  const [correctAnswers, setCorrectAnswers] = useState<{
+    [questionId: string]: string;
+  }>({});
   const [quizStatus, setQuizStatus] = useState<string>("");
   const [submitted, isSubmitted] = useState(false);
   const [score, setScore] = useState<{
@@ -116,8 +129,12 @@ export default function ExamQuizUI({
   console.log("questions types", questions);
 
   useEffect(() => {
-    const answers = questions.map((q) => q.answer);
-    setCorrectAnswers(answers);
+    // const answers = questions.map((q) => q.answer);
+    const answers = questions.map((q) =>
+      setCorrectAnswers((prev) => ({ ...prev, [q.id]: q.answer }))
+    );
+    // setCorrectAnswers(prev => ({...prev, [q.]})));
+    console.log("corectt", answers);
   }, [questions]);
 
   useEffect(() => console.log("user answ", userAnswers), [userAnswers]);
@@ -164,14 +181,26 @@ export default function ExamQuizUI({
       quiz_id: quiz.id,
       question_id: q.id,
       user_id: quiz.user_id,
-      selected_choice: q.type === "Multiple Choice" ? userAnswers[q.id] : null,
-      submitted_text: q.type === "Open-Ended" ? userAnswers[q.id] : null,
+
+      // Choices (Multiple Choice & True/False)
+      selected_choice:
+        q.type === "Multiple Choice" || q.type === "True/False"
+          ? userAnswers[q.id]
+          : null,
+
+      // Text answers (Open-Ended & Fill in the Blank)
+      submitted_text:
+        q.type === "Open-Ended" || q.type === "Fill in the Blank"
+          ? userAnswers[q.id]
+          : null,
+
       ai_feedback:
         q.type === "Open-Ended" ? newAIFeedback[q.id]?.criteria : null,
+
       score:
         q.type === "Open-Ended"
           ? newAIFeedback[q.id]?.grade
-          : q.answer === userAnswers[q.id]
+          : userAnswers[q.id] === q.answer
           ? 1
           : 0,
     }));
@@ -196,6 +225,15 @@ export default function ExamQuizUI({
     }
   };
 
+  const scrollToNextUnanswered = () => {
+    const unansweredIndex = questions.findIndex((q) => !userAnswers[q.id]);
+    if (unansweredIndex !== -1 && questionRefs.current[unansweredIndex]) {
+      questionRefs.current[unansweredIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
   const getAIGradedScore = async (q: any) => {
     console.log();
     const res = await fetch("/api/grade-answer", {
@@ -224,91 +262,191 @@ export default function ExamQuizUI({
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-bold mb-4">{quiz.style} Quiz</h2>{" "}
-        <h2>
-          {score?.score}/{score?.totalItems}
-        </h2>
+    <div className="flex flex-col min-h-screen">
+      <div className="grid grid-cols-3 items-center border-b p-4">
+        <div>
+          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+            Solar system practice exam
+          </h3>
+          {score?.score}
+        </div>
+        <div className="flex justify-center">
+          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+            {Object.keys(userAnswers).length} / {questions.length} &middot;
+            20:00
+          </h3>
+        </div>
+        <div className="flex justify-end">
+          <Button variant="ghost">
+            <X />
+          </Button>
+        </div>
       </div>
 
-      {questions.map((q: any, index: number) => (
-        <div key={q.id} className=" p-4  mb-4">
-          <p className="font-semibold">
-            {index + 1}. {q.question}
-          </p>
-          <RadioGroup defaultValue="comfortable">
-            <div className="flex items-center gap-3">
-              <RadioGroupItem value="default" id="r1" />
-              <Label htmlFor="r1">Default</Label>
-            </div>
-            <div className="flex items-center gap-3">
-              <RadioGroupItem value="comfortable" id="r2" />
-              <Label htmlFor="r2">Comfortable</Label>
-            </div>
-            <div className="flex items-center gap-3">
-              <RadioGroupItem value="compact" id="r3" />
-              <Label htmlFor="r3">Compact</Label>
-            </div>
-          </RadioGroup>
-          {/* {q.choices && (
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              value={userAnswers[q.id] || ""}
-              onValueChange={(value) => {
-                if (value) {
-                  setUserAnswers((prev) => ({ ...prev, [q.id]: value }));
-                }
-              }}
-              className="grid grid-cols-2 gap-4"
-            >
-              {q.choices.map((choice: string, index: number) => (
-                <ToggleGroupItem
-                  value={choice}
-                  key={index}
-                  disabled={submitted && userAnswers[q.id] !== choice}
-                  className={cn(
-                    submitted && choice === q.answer
-                      ? "bg-gray-300 text-accent-foreground " // highlight correct
-                      : "",
-                    submitted &&
-                      userAnswers[q.id] === choice &&
-                      choice !== q.answer
-                      ? "" // show wrong selection
-                      : ""
-                  )}
-                >
-                  {choice}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          )} */}
+      <div className="mx-32 my-10 ">
+        {questions.map((q: any, index: number) => (
+          <div key={q.id} className=" p-4  mb-6">
+            <p className="font-semibold mb-3">
+              {index + 1}. {q.question}
+            </p>
 
-          {/* {q.type === "Open-Ended" && (
-            <div className="grid w-full gap-3">
-              <Textarea
-                disabled={quiz.status === "taken"}
-                placeholder="Type your message here."
-                id={q.id}
+            {/* Multiple Choice */}
+            {q.type === "Multiple Choice" && q.choices.length > 0 && (
+              <RadioGroup
+                disabled={isTaken}
                 value={userAnswers[q.id] || ""}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setUserAnswers((prev) => ({
                     ...prev,
-                    [q.id]: e.target.value,
+                    [q.id]: value,
                   }))
                 }
-              />
-              <p className="text-muted-foreground text-sm">
-                {aiFeedback[q.id]?.grade ?? "Your answer will be graded by AI."}
-              </p>
-            </div>
-          )} */}
-        </div>
-      ))}
-      <Button onClick={handleSubmitScore} hidden={submitted}>
-        Submit
-      </Button>
+                className="space-y-2"
+              >
+                {q.choices.map((choice: string, i: number) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <RadioGroupItem value={choice} id={choice} />
+                    <Label
+                      htmlFor={choice}
+                      className={`${
+                        isTaken && choice === correctAnswers[q.id]
+                          ? "text-green-500"
+                          : ""
+                      }`}
+                    >
+                      {choice}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+
+            {/* True / False */}
+            {q.type === "True/False" && (
+              <RadioGroup
+                disabled={isTaken}
+                value={userAnswers[q.id] || ""}
+                onValueChange={(value) =>
+                  setUserAnswers((prev) => ({
+                    ...prev,
+                    [q.id]: value,
+                  }))
+                }
+                className="space-y-2"
+              >
+                {["True", "False"].map((val) => {
+                  const choiceId = `${q.id}-${val}`;
+                  const userAnswer = userAnswers[q.id];
+                  const correctAnswer = correctAnswers[q.id];
+                  let labelClass = "";
+
+                  if (isTaken) {
+                    if (val === correctAnswer && userAnswer === correctAnswer) {
+                      labelClass = "text-green-600 font-semibold"; // correct selected
+                    } else if (
+                      val === userAnswer &&
+                      userAnswer !== correctAnswer
+                    ) {
+                      labelClass = "text-red-600 font-semibold"; // wrong selected
+                    }
+                  }
+
+                  return (
+                    <div key={val} className="flex items-center gap-3">
+                      <RadioGroupItem value={val} id={choiceId} />
+                      <Label htmlFor={choiceId} className={labelClass}>
+                        {val}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </RadioGroup>
+            )}
+            {/* Fill in the Blank */}
+            {q.type === "Fill in the Blank" && (
+              <div className="mt-3">
+                <Textarea
+                  disabled={isTaken}
+                  placeholder="Enter your answer..."
+                  value={userAnswers[q.id] || ""}
+                  onChange={(e) =>
+                    setUserAnswers((prev) => ({
+                      ...prev,
+                      [q.id]: e.target.value,
+                    }))
+                  }
+                  className={`w-full ${
+                    submitted && userAnswers[q.id] === correctAnswers[q.id]
+                      ? "border-green-500"
+                      : "border-red-500"
+                  }`}
+                />
+
+                {/* Show correct answer if user's answer is wrong */}
+                {submitted &&
+                  userAnswers[q.id] &&
+                  userAnswers[q.id] !== correctAnswers[q.id] && (
+                    <div className="mt-2">
+                      <Label>Correct answer</Label>
+                      <Textarea
+                        value={correctAnswers[q.id]}
+                        disabled
+                        className="border-green-500"
+                      />
+                    </div>
+                  )}
+              </div>
+            )}
+            {/* Open-Ended */}
+            {q.type === "Open-Ended" && (
+              <div className="mt-3">
+                <Textarea
+                  disabled={isTaken}
+                  placeholder="Write your detailed answer..."
+                  value={userAnswers[q.id] || ""}
+                  onChange={(e) =>
+                    setUserAnswers((prev) => ({
+                      ...prev,
+                      [q.id]: e.target.value,
+                    }))
+                  }
+                  className="w-full"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {aiFeedback[q.id]?.grade ??
+                    "Your answer will be graded by AI."}
+                </p>
+
+                {submitted &&
+                  userAnswers[q.id] &&
+                  userAnswers[q.id] !== correctAnswers[q.id] && (
+                    <div className="mt-2">
+                      <Label>Correct answer</Label>
+                      <Textarea
+                        value={correctAnswers[q.id]}
+                        disabled
+                        className="border-green-500"
+                      />
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="sticky bottom-0 justify-between flex w-full  border-t bg-background p-4">
+        <Button onClick={handleSubmitScore} size="lg">
+          Submit test
+        </Button>
+        <Button
+          onClick={scrollToNextUnanswered}
+          hidden={submitted}
+          variant="outline"
+          size="lg"
+        >
+          Next unanswered question
+        </Button>
+      </div>
     </div>
   );
 }
