@@ -7,7 +7,10 @@ import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "../ui/badge";
 import { X } from "lucide-react";
+
+import { Input } from "../ui/input";
 type quiz = {
   id: string;
   user_id: string;
@@ -46,6 +49,8 @@ export default function ExamQuizUI({
 }) {
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [isTaken, setIsTaken] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(20 * 60); // seconds (default 20 mins)
+  const [startTime, setStartTime] = useState<number | null>(null);
 
   useEffect(() => {
     const loadSavedAnswers = async () => {
@@ -113,6 +118,7 @@ export default function ExamQuizUI({
   }>({});
   const [quizStatus, setQuizStatus] = useState<string>("");
   const [submitted, isSubmitted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [score, setScore] = useState<{
     score: number;
     totalItems: number;
@@ -142,6 +148,14 @@ export default function ExamQuizUI({
   console.log("answ", correctAnswers);
 
   const handleSubmitScore = async () => {
+    if (startTime) {
+      const elapsedMs = Date.now() - startTime;
+      const elapsedSeconds = Math.floor(elapsedMs / 1000); // convert ms → seconds
+      const elapsedMinutes = Math.floor(elapsedMs / 60000); // for saving in DB
+
+      console.log("⏳ Time taken (formatted):", formatTime(elapsedSeconds));
+      console.log("⏳ Time taken (minutes):", elapsedMinutes);
+    }
     let calculatedScore = 0;
     const newAIFeedback: {
       [questionId: string]: {
@@ -223,6 +237,11 @@ export default function ExamQuizUI({
     } else {
       ("Marked quiz as taken");
     }
+
+    // simulate processing time
+    setTimeout(() => {
+      window.location.reload(); // hard reload (forces fresh render with submitted state from DB/localStorage)
+    }, 1500);
   };
 
   const scrollToNextUnanswered = () => {
@@ -234,6 +253,21 @@ export default function ExamQuizUI({
       });
     }
   };
+
+  // format mm:ss
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const handleStart = () => {
+    setHasStarted(true);
+    setStartTime(Date.now());
+  };
+
   const getAIGradedScore = async (q: any) => {
     console.log();
     const res = await fetch("/api/grade-answer", {
@@ -261,21 +295,47 @@ export default function ExamQuizUI({
     return data;
   };
 
+  // Timer effect
+  useEffect(() => {
+    if (!hasStarted || submitted) return;
+
+    if (timeLeft <= 0) {
+      handleSubmitScore();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [hasStarted, timeLeft, submitted]);
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen ">
       <div className="grid grid-cols-3 items-center border-b p-4">
         <div>
           <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
             Solar system practice exam
           </h3>
-          {score?.score}
         </div>
-        <div className="flex justify-center">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            {Object.keys(userAnswers).length} / {questions.length} &middot;
-            20:00
-          </h3>
-        </div>
+        {!submitted ? (
+          <div className="flex justify-center">
+            <h3
+              className={`scroll-m-20 text-2xl font-semibold tracking-tight ${
+                !submitted ? "hidden" : " "
+              }`}
+            >
+              {Object.keys(userAnswers).length} / {questions.length} &middot;
+              <div className="text-lg font-semibold">
+                ⏱ {formatTime(timeLeft)}
+              </div>
+            </h3>
+          </div>
+        ) : (
+          <div></div>
+        )}
+
         <div className="flex justify-end">
           <Button variant="ghost">
             <X />
@@ -283,7 +343,42 @@ export default function ExamQuizUI({
         </div>
       </div>
 
-      <div className="mx-32 my-10 ">
+      <div className="mx-32 my-10  ">
+        {submitted && (
+          <div className="flex justify-between">
+            <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance w-72">
+              Don't worry you'll bounce back{" "}
+            </h1>
+            <div className="flex gap-5">
+              <div className="flex flex-col">
+                <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                  Score:
+                </h3>
+                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
+                  {" "}
+                  54%
+                </h1>
+              </div>
+              <div className="flex flex-col">
+                <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                  Resuls:
+                </h3>
+                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
+                  {" "}
+                  {score?.score} / {questions.length}
+                </h1>
+              </div>
+              <div className="flex flex-col">
+                <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                  Total Time:
+                </h3>
+                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
+                  6m{" "}
+                </h1>
+              </div>
+            </div>
+          </div>
+        )}
         {questions.map((q: any, index: number) => (
           <div key={q.id} className=" p-4  mb-6">
             <p className="font-semibold mb-3">
@@ -376,9 +471,11 @@ export default function ExamQuizUI({
                     }))
                   }
                   className={`w-full ${
-                    submitted && userAnswers[q.id] === correctAnswers[q.id]
-                      ? "border-green-500"
-                      : "border-red-500"
+                    submitted
+                      ? userAnswers[q.id] === correctAnswers[q.id]
+                        ? "border-green-500"
+                        : "border-red-500"
+                      : "border"
                   }`}
                 />
 
@@ -399,7 +496,7 @@ export default function ExamQuizUI({
             )}
             {/* Open-Ended */}
             {q.type === "Open-Ended" && (
-              <div className="mt-3">
+              <div className="mt-3 relative">
                 <Textarea
                   disabled={isTaken}
                   placeholder="Write your detailed answer..."
@@ -412,7 +509,10 @@ export default function ExamQuizUI({
                   }
                   className="w-full"
                 />
-                <p className="text-sm text-muted-foreground mt-1">
+                <Badge className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums absolute top-0 right-0">
+                  {aiFeedback[q.id]?.grade}
+                </Badge>
+                <p className="leading-7 [&:not(:first-child)]:mt-1">
                   {aiFeedback[q.id]?.grade ??
                     "Your answer will be graded by AI."}
                 </p>
@@ -421,7 +521,7 @@ export default function ExamQuizUI({
                   userAnswers[q.id] &&
                   userAnswers[q.id] !== correctAnswers[q.id] && (
                     <div className="mt-2">
-                      <Label>Correct answer</Label>
+                      <Label className="mb-2">Correct answer</Label>
                       <Textarea
                         value={correctAnswers[q.id]}
                         disabled
@@ -434,19 +534,54 @@ export default function ExamQuizUI({
           </div>
         ))}
       </div>
-      <div className="sticky bottom-0 justify-between flex w-full  border-t bg-background p-4">
-        <Button onClick={handleSubmitScore} size="lg">
-          Submit test
-        </Button>
-        <Button
-          onClick={scrollToNextUnanswered}
-          hidden={submitted}
-          variant="outline"
-          size="lg"
-        >
-          Next unanswered question
-        </Button>
-      </div>
+
+      {!isTaken && (
+        <div className="sticky bottom-0 flex w-full justify-between border-t bg-background p-4">
+          {hasStarted ? (
+            <Button onClick={handleSubmitScore} size="lg" hidden={submitted}>
+              Submit test
+            </Button>
+          ) : (
+            <div className="flex w-full items-center justify-between gap-6">
+              {/* Left side inputs */}
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Label>Time (mins):</Label>
+                  <Input
+                    type="number"
+                    defaultValue={20}
+                    className="w-20"
+                    onChange={(e) => setTimeLeft(Number(e.target.value) * 60)}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label>Total questions:</Label>
+                  <Input
+                    disabled
+                    defaultValue={questions.length}
+                    className="w-20"
+                  />
+                </div>
+              </div>
+
+              {/* Right side start button */}
+              <Button size="lg" onClick={handleStart}>
+                Start Test
+              </Button>
+            </div>
+          )}
+          {submitted && (
+            <Button
+              onClick={scrollToNextUnanswered}
+              hidden={submitted}
+              variant="outline"
+              size="lg"
+            >
+              Next unanswered question
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
