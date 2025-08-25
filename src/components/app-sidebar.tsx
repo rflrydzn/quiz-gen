@@ -1,4 +1,15 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  Search,
+  Settings,
+  FileText,
+  PlusCircle,
+  Bookmark,
+  User,
+  HelpCircle,
+} from "lucide-react";
 import LoginButton from "./LoginLogoutButton";
 import {
   Sidebar,
@@ -9,43 +20,77 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
+  SidebarRail,
 } from "@/components/ui/sidebar";
+import { NavUser } from "./nav-user";
+import { createClient } from "@/utils/supabase/client";
+import { useState, useEffect } from "react";
+
+const supabase = createClient();
 
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "/",
-    icon: Home,
+    title: "Dashboard",
+    url: "#",
+    icon: Home, // Home icon
   },
   {
     title: "My Quizzes",
     url: "/my-quizzes",
-    icon: Inbox,
+    icon: FileText, // Document/quiz icon
   },
   {
-    title: "My Progress",
-    url: "#",
-    icon: Calendar,
+    title: "Create Quiz",
+    url: "/create-quiz",
+    icon: PlusCircle, // Add new quiz
   },
   {
-    title: "Search",
+    title: "Saved Quizzes",
     url: "#",
-    icon: Search,
+    icon: Bookmark, // Saved/bookmarked quizzes
   },
   {
     title: "Settings",
     url: "#",
-    icon: Settings,
+    icon: Settings, // Settings gear
+  },
+  {
+    title: "Profile",
+    url: "#",
+    icon: User, // User avatar
+  },
+  {
+    title: "Help / Feedback",
+    url: "#",
+    icon: HelpCircle, // Question mark for help
   },
 ];
 
 export function AppSidebar() {
+  const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      console.log("Fetched user:", user);
+    };
+    fetchUser();
+  }, []);
+
+  const userData = {
+    name: user?.user_metadata?.full_name,
+    email: user?.email,
+    avatar: "/avatars/shadcn.jpg",
+  };
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>QuizMaster</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -62,6 +107,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={userData} />
+      </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
