@@ -26,6 +26,7 @@ export default function MyQuizzes() {
   const supabase = createClient();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [searchText, setSearchText] = useState("");
 
   // Fetch quizzes
   const fetchQuizzes = async () => {
@@ -56,6 +57,10 @@ export default function MyQuizzes() {
     queryFn: fetchQuizzes,
     retry: false,
   });
+
+  const filterSearch = quizzes.filter((quiz) =>
+    quiz.title?.toLocaleLowerCase().includes(searchText.toLocaleLowerCase())
+  );
 
   // Mutation for delete
   const deleteQuiz = useMutation({
@@ -106,82 +111,98 @@ export default function MyQuizzes() {
         <Input
           placeholder="Search quizzes..."
           className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
       </div>
 
       <div className="space-y-2">
-        {quizzes?.map((quiz) => (
-          <div
-            key={quiz.id}
-            className="group relative border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
-            onClick={() => router.push(`/quiz/${quiz.id}`)}
-          >
-            {/* Delete button with tooltip */}
-            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="relative">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:bg-gray-200 hover:text-red-600 transition-colors rounded-md"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteQuiz.mutate(quiz.id);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                  <span className="sr-only">Delete Quiz</span>
-                </Button>
-                {/* Tooltip */}
-                {/* <div className="absolute -top-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+        {filterSearch.length > 0 ? (
+          filterSearch.map((quiz) => (
+            <div
+              key={quiz.id}
+              className="group relative border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+              onClick={() => router.push(`/quiz/${quiz.id}`)}
+            >
+              {/* Delete button with tooltip */}
+              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-gray-200 hover:text-red-600 transition-colors rounded-md"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteQuiz.mutate(quiz.id);
+                    }}
+                  >
+                    <Trash className="h-4 w-4" />
+                    <span className="sr-only">Delete Quiz</span>
+                  </Button>
+                  {/* Tooltip */}
+                  {/* <div className="absolute -top-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                   Delete quiz
                   <div className="absolute top-full right-2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
                 </div> */}
-              </div>
-            </div>
-
-            {/* Quiz content */}
-            <div className="p-4 pr-12">
-              {/* Quiz title - static for now */}
-              <h3 className="font-semibold text-gray-900 mb-2 text-lg">
-                {quiz.title || "Untitled Quiz"}
-              </h3>
-
-              {/* Quiz metadata */}
-              <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                <span className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                  Style: {quiz.style}
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  {quiz.number_of_items} questions
-                </span>
+                </div>
               </div>
 
-              {/* Status and date */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      quiz.status === "taken"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {quiz.status === "taken" ? "✓ Completed" : "○ Pending"}
+              {/* Quiz content */}
+              <div className="p-4 pr-12">
+                {/* Quiz title - static for now */}
+                <h3 className="font-semibold text-gray-900 mb-2 text-lg">
+                  {quiz.title || "Untitled Quiz"}
+                </h3>
+
+                {/* Quiz metadata */}
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                  <span className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    Style: {quiz.style}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    {quiz.number_of_items} questions
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">
-                  {new Date(quiz.created_at).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </p>
+
+                {/* Status and date */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        quiz.status === "taken"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {quiz.status === "taken" ? "✓ Completed" : "○ Pending"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {new Date(quiz.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-3 ">
+            <Image
+              src={EmptyQuizGraphic}
+              alt="Empty quiz"
+              width={500}
+              height={500}
+            />
+            <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+              No Quiz Found
+            </h3>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

@@ -95,7 +95,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
-          <SidebarTrigger />
+          <SidebarTrigger className="-ml-1" />
           <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">
             QuizMaster
           </span>
