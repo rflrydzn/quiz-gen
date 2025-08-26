@@ -40,7 +40,7 @@ export default function RootLayout({
           <SidebarProvider>
             <AppSidebar />
             <main className="flex-1">
-              <SidebarTrigger />
+              {/* <SidebarTrigger /> */}
               {children}
             </main>
             <Toaster position="bottom-center" />

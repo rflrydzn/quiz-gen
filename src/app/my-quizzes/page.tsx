@@ -9,6 +9,8 @@ import EmptyQuizGraphic from "@/../public/empty-quiz.svg";
 import Image from "next/image";
 import { Trash } from "lucide-react";
 import CreateQuiz from "@/components/CreateQuiz";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 type Quiz = {
   id: string;
@@ -90,48 +92,92 @@ export default function MyQuizzes() {
   if (error) return <p className="text-red-600">{(error as Error).message}</p>;
 
   return (
-    <div className="p-6">
-      <div className="justify-between flex items-center">
+    <div className="my-16 mx-36">
+      <div className="justify-between flex ">
         <h1 className="text-2xl font-bold mb-4">My Quizzes</h1>
         <CreateQuiz />
       </div>
+      <div className="relative flex items-center justify-center mb-6">
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={18}
+        />
+        <Input
+          placeholder="Search quizzes..."
+          className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+        />
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {quizzes?.map((quiz) => (
           <div
             key={quiz.id}
-            className="border p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-100"
+            className="group relative border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
             onClick={() => router.push(`/quiz/${quiz.id}`)}
           >
-            <div>
-              <p className="font-semibold">{quiz.style}</p>
-              <p className="text-sm text-gray-600">
-                Difficulty: {quiz.difficulty} | {quiz.number_of_items} questions
-              </p>
-              <p className="text-xs text-gray-500">
-                Created: {new Date(quiz.created_at).toLocaleString()}
-              </p>
-              <p>{quiz.status === "taken" ? "Taken" : "Not Taken"}</p>
+            {/* Delete button with tooltip */}
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-gray-200 hover:text-red-600 transition-colors rounded-md"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteQuiz.mutate(quiz.id);
+                  }}
+                >
+                  <Trash className="h-4 w-4" />
+                  <span className="sr-only">Delete Quiz</span>
+                </Button>
+                {/* Tooltip */}
+                {/* <div className="absolute -top-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                  Delete quiz
+                  <div className="absolute top-full right-2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900"></div>
+                </div> */}
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  router.push(`/quiz/${quiz.id}`);
-                }}
-              >
-                Open
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={(e) => {
-                  e.stopPropagation(); // prevent opening quiz
-                  deleteQuiz.mutate(quiz.id);
-                }}
-              >
-                <Trash />
-              </Button>
+
+            {/* Quiz content */}
+            <div className="p-4 pr-12">
+              {/* Quiz title - static for now */}
+              <h3 className="font-semibold text-gray-900 mb-2 text-lg">
+                {quiz.style} Quiz
+              </h3>
+
+              {/* Quiz metadata */}
+              <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                <span className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  Difficulty: {quiz.difficulty}
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  {quiz.number_of_items} questions
+                </span>
+              </div>
+
+              {/* Status and date */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      quiz.status === "taken"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {quiz.status === "taken" ? "✓ Completed" : "○ Pending"}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {new Date(quiz.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
             </div>
           </div>
         ))}

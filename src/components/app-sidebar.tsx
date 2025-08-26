@@ -22,9 +22,12 @@ import {
   SidebarMenuItem,
   SidebarFooter,
   SidebarRail,
+  SidebarTrigger,
+  SidebarHeader,
 } from "@/components/ui/sidebar";
 import { NavUser } from "./nav-user";
 import { createClient } from "@/utils/supabase/client";
+import { signout } from "@/lib/auth-actions";
 import { useState, useEffect } from "react";
 
 const supabase = createClient();
@@ -34,42 +37,43 @@ const items = [
   {
     title: "Dashboard",
     url: "#",
-    icon: Home, // Home icon
+    icon: Home,
   },
   {
     title: "My Quizzes",
     url: "/my-quizzes",
-    icon: FileText, // Document/quiz icon
+    icon: FileText,
   },
   {
     title: "Create Quiz",
     url: "/create-quiz",
-    icon: PlusCircle, // Add new quiz
+    icon: PlusCircle,
   },
   {
     title: "Saved Quizzes",
     url: "#",
-    icon: Bookmark, // Saved/bookmarked quizzes
+    icon: Bookmark,
   },
   {
     title: "Settings",
     url: "#",
-    icon: Settings, // Settings gear
+    icon: Settings,
   },
   {
     title: "Profile",
     url: "#",
-    icon: User, // User avatar
+    icon: User,
   },
   {
     title: "Help / Feedback",
     url: "#",
-    icon: HelpCircle, // Question mark for help
+    icon: HelpCircle,
   },
 ];
 
 export function AppSidebar() {
   const [user, setUser] = useState<any>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       const {
@@ -86,16 +90,25 @@ export function AppSidebar() {
     email: user?.email,
     avatar: "/avatars/shadcn.jpg",
   };
+
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <SidebarTrigger />
+          <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">
+            QuizMaster
+          </span>
+        </div>
+      </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>QuizMaster</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
@@ -107,8 +120,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={userData} />
+        <NavUser
+          user={userData}
+          onSignout={() => {
+            signout();
+            setUser(null);
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

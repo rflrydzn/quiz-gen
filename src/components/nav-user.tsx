@@ -25,15 +25,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "./ui/button";
 
 export function NavUser({
   user,
+  onSignout,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  onSignout: () => void;
 }) {
   const { isMobile } = useSidebar();
 
@@ -98,7 +101,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onSignout()}>
               <LogOut />
               Log out
             </DropdownMenuItem>
