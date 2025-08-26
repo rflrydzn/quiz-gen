@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,7 @@ const PracticeModeCreator = () => {
   const supabase = createClient();
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Practice Set");
-  const [description, setDescription] = useState("");
+  // const [description, setDescription] = useState("");
   const [user, setUser] = useState<any>(null);
 
   const [questions, setQuestions] = useState<Question[]>([
@@ -100,8 +100,8 @@ const PracticeModeCreator = () => {
   };
 
   const updateQuestion = (id: string, field: keyof Question, value: any) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
   };
 
@@ -218,7 +218,7 @@ const PracticeModeCreator = () => {
 
     const practiceSet = {
       title,
-      description,
+      // description,
       questions: validQuestions.map((q) => ({
         question: q.question,
         type: q.type,
@@ -251,6 +251,7 @@ const PracticeModeCreator = () => {
         number_of_items: practiceSet.questions.length,
         source_file_url: null,
         source_text: null,
+        title: title,
       })
       .select("id")
       .single();
@@ -294,7 +295,7 @@ const PracticeModeCreator = () => {
 
   const resetAll = () => {
     setTitle("Untitled Practice Set");
-    setDescription("");
+    // setDescription("");
     setQuestions([
       {
         id: generateId(),
@@ -318,6 +319,17 @@ const PracticeModeCreator = () => {
       },
     ]);
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      console.log("Fetched user:", user);
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
@@ -347,7 +359,7 @@ const PracticeModeCreator = () => {
                 placeholder="Enter a title for your practice set"
               />
             </div>
-            <div>
+            {/* <div>
               <Label
                 htmlFor="description"
                 className="text-sm font-medium mb-2 block"
@@ -362,7 +374,7 @@ const PracticeModeCreator = () => {
                 placeholder="Add a description..."
                 rows={2}
               />
-            </div>
+            </div> */}
           </div>
         </div>
 

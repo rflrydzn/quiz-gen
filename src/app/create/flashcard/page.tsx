@@ -23,7 +23,7 @@ const FlashcardCreator = () => {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Study Set");
-  const [description, setDescription] = useState("");
+  // const [description, setDescription] = useState("");
   const [cards, setCards] = useState<
     { id: number; front: string; back: string; index: number; hint: string }[]
   >([
@@ -126,7 +126,7 @@ const FlashcardCreator = () => {
   const saveStudySet = async () => {
     const studySet = {
       title,
-      description,
+      // description,
       cards: cards.filter((card) => card.front.trim() && card.back.trim()),
       createdAt: new Date().toISOString(),
     };
@@ -152,6 +152,7 @@ const FlashcardCreator = () => {
         number_of_items: studySet.cards.length,
         source_file_url: null,
         source_text: null,
+        title: title,
       })
       .select("id")
       .single();
@@ -195,7 +196,7 @@ const FlashcardCreator = () => {
 
   const resetAll = () => {
     setTitle("Untitled Study Set");
-    setDescription("");
+    // setDescription("");
     setCards([
       { id: 1, front: "", back: "", index: 1, hint: "No hint provided" },
     ]);
@@ -240,7 +241,7 @@ const FlashcardCreator = () => {
                 placeholder="Enter a title for your study set"
               />
             </div>
-            <div>
+            {/* <div>
               <Label
                 htmlFor="description"
                 className="text-sm font-medium mb-2 block"
@@ -255,7 +256,7 @@ const FlashcardCreator = () => {
                 placeholder="Add a description..."
                 rows={2}
               />
-            </div>
+            </div> */}
           </div>
         </div>
 

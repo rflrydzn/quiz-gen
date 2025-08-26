@@ -38,7 +38,7 @@ const ExamStyleCreator = () => {
   const supabase = createClient();
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Exam");
-  const [description, setDescription] = useState("");
+  // const [description, setDescription] = useState("");
   const [user, setUser] = useState<any>(null);
 
   const [questions, setQuestions] = useState<Question[]>([
@@ -209,7 +209,7 @@ const ExamStyleCreator = () => {
 
     const examSet = {
       title,
-      description,
+      // description,
       questions: validQuestions.map((q) => ({
         question: q.question,
         type: q.type,
@@ -283,7 +283,7 @@ const ExamStyleCreator = () => {
 
   const resetAll = () => {
     setTitle("Untitled Exam");
-    setDescription("");
+    // setDescription("");
     setQuestions([
       {
         id: generateId(),
@@ -343,7 +343,7 @@ const ExamStyleCreator = () => {
                 placeholder="Enter a title for your exam"
               />
             </div>
-            <div>
+            {/* <div>
               <Label
                 htmlFor="description"
                 className="text-sm font-medium mb-2 block"
@@ -358,7 +358,7 @@ const ExamStyleCreator = () => {
                 placeholder="Add a description..."
                 rows={2}
               />
-            </div>
+            </div> */}
           </div>
         </div>
 
