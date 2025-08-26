@@ -51,6 +51,7 @@ export default function ExamQuizUI({
   const [isTaken, setIsTaken] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20 * 60); // seconds (default 20 mins)
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [title, setTitle] = useState("Untitled Quiz");
 
   useEffect(() => {
     const loadSavedAnswers = async () => {
@@ -62,11 +63,12 @@ export default function ExamQuizUI({
 
       const { data: quizdata, error: quizerror } = await supabase
         .from("quizzes")
-        .select("status")
+        .select("status, title")
         .eq("id", quiz.id)
         .single();
       console.log("data", quizdata);
       if (quizdata?.status === "taken") setIsTaken(true);
+      setTitle(quizdata?.title);
       if (error) {
         console.error("Error loading saved answers", error);
         return;
@@ -316,7 +318,7 @@ export default function ExamQuizUI({
       <div className="grid grid-cols-3 items-center border-b p-4">
         <div>
           <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            Solar system practice exam
+            {title}
           </h3>
         </div>
         {!submitted ? (

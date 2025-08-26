@@ -19,6 +19,7 @@ type Quiz = {
   number_of_items: number;
   created_at: string;
   status: string;
+  title: string;
 };
 
 export default function MyQuizzes() {
@@ -142,14 +143,14 @@ export default function MyQuizzes() {
             <div className="p-4 pr-12">
               {/* Quiz title - static for now */}
               <h3 className="font-semibold text-gray-900 mb-2 text-lg">
-                {quiz.style} Quiz
+                {quiz.title || "Untitled Quiz"}
               </h3>
 
               {/* Quiz metadata */}
               <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                 <span className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                  Difficulty: {quiz.difficulty}
+                  Style: {quiz.style}
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>

@@ -11,7 +11,8 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter, useParams } from "next/navigation";
 import { TabsDemo } from "@/components/ContextTabs";
 import { Loader2Icon } from "lucide-react";
-
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 type QuizOptions = {
   questionCounts: number;
   quizStyle?: string;
@@ -20,6 +21,7 @@ type QuizOptions = {
   fileUrl: string;
   textContent: string;
   distribution: { type: string; count: number }[];
+  title: string;
 };
 
 const QuizSettings = () => {
@@ -28,6 +30,7 @@ const QuizSettings = () => {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
+    title: "",
     questionCounts: 5,
     quizStyle: "",
     questionTypes: [],
@@ -104,6 +107,7 @@ const QuizSettings = () => {
           number_of_items: quizoptions.questionCounts,
           source_file_url: quizoptions.fileUrl || null,
           source_text: quizoptions.textContent || null,
+          title: quizoptions.title || "Untitled Quiz",
         })
         .select("id")
         .single();
@@ -199,6 +203,18 @@ const QuizSettings = () => {
           setQuizOptions({ ...quizoptions, quizStyle: style })
         }
       /> */}
+      <div>
+        <Label className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Title
+        </Label>
+        <Input
+          placeholder="Untitled Quiz"
+          value={quizoptions.title}
+          onChange={(e) =>
+            setQuizOptions((prev) => ({ ...prev, title: e.target.value }))
+          }
+        ></Input>
+      </div>
 
       <QuestionType
         quizStyle={quizoptions.quizStyle!}
