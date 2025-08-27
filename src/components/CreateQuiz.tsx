@@ -10,14 +10,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  FlashcardBW,
-  ExamModeIcon,
-  PracticeModeIcon,
-} from "@/components/Illustrations";
+
+import FlashcardBW from "@/../public/flashcard.svg";
+import ExamModeIcon from "@/../public/exam.svg";
+import PracticeModeIcon from "@/../public/practice.svg";
+import AIicon from "@/../public/ai.svg";
+import ManualIcon from "@/../public/manual.svg";
 import { Card, CardTitle } from "./ui/card";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const CreateQuiz = () => {
   const [step, setStep] = useState<"style" | "flashcard" | "practice" | "exam">(
@@ -78,7 +80,8 @@ const CreateQuiz = () => {
                 onClick={() => handleSelectStyle("Flashcard")}
                 className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
               >
-                <FlashcardBW className="w-20 h-20" />
+                <Image src={FlashcardBW} alt="Flashcard Illustration" />
+
                 <CardTitle className="text-center text-sm font-medium">
                   Flashcard
                 </CardTitle>
@@ -88,7 +91,10 @@ const CreateQuiz = () => {
                 onClick={() => handleSelectStyle("Practice")}
                 className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
               >
-                <PracticeModeIcon className="w-20 h-20" />
+                <Image
+                  src={PracticeModeIcon}
+                  alt="Practice Mode Illustration"
+                />
                 <CardTitle className="text-center text-sm font-medium">
                   Practice
                 </CardTitle>
@@ -98,7 +104,7 @@ const CreateQuiz = () => {
                 onClick={() => handleSelectStyle("Exam")}
                 className="flex flex-col items-center justify-center p-4 border hover:shadow-lg cursor-pointer transition"
               >
-                <ExamModeIcon className="w-20 h-20 " />
+                <Image src={ExamModeIcon} alt="Exam Illustration" />
                 <CardTitle className="text-center text-sm font-medium">
                   Exam
                 </CardTitle>
@@ -130,6 +136,7 @@ const CreateQuiz = () => {
                 onClick={() => handleFlashcardChoice("ai")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
+                <Image src={AIicon} alt="AI Illustration" />
                 <CardTitle className="text-center text-sm font-medium">
                   AI Generated
                 </CardTitle>
@@ -139,8 +146,9 @@ const CreateQuiz = () => {
                 onClick={() => handleFlashcardChoice("manual")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
-                <CardTitle className="text-center text-sm font-medium">
-                  Manual
+                <Image src={ManualIcon} alt="Manual Create Illustration" />
+                <CardTitle className="text-center text-sm font-medium ">
+                  Create Yourself
                 </CardTitle>
               </Card>
             </div>
@@ -170,6 +178,7 @@ const CreateQuiz = () => {
                 onClick={() => handlePracticeChoice("ai")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
+                <Image src={AIicon} alt="AI Illustration" />
                 <CardTitle className="text-center text-sm font-medium">
                   AI Generated
                 </CardTitle>
@@ -179,17 +188,9 @@ const CreateQuiz = () => {
                 onClick={() => handlePracticeChoice("manual")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
-                <CardTitle className="text-center text-sm font-medium">
-                  Manual
-                </CardTitle>
-              </Card>
-
-              <Card
-                onClick={() => handleFlashcardChoice("ai")}
-                className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
-              >
-                <CardTitle className="text-center text-sm font-medium">
-                  From flashcards
+                <Image src={ManualIcon} alt="Manual Create Illustration" />
+                <CardTitle className="text-center text-sm font-medium ">
+                  Create Yourself
                 </CardTitle>
               </Card>
             </div>
@@ -219,6 +220,7 @@ const CreateQuiz = () => {
                 onClick={() => handleExamChoice("ai")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
+                <Image src={AIicon} alt="AI Illustration" />
                 <CardTitle className="text-center text-sm font-medium">
                   AI Generated
                 </CardTitle>
@@ -228,8 +230,9 @@ const CreateQuiz = () => {
                 onClick={() => handleExamChoice("manual")}
                 className="flex flex-col items-center justify-center p-6 border hover:shadow-lg cursor-pointer transition"
               >
-                <CardTitle className="text-center text-sm font-medium">
-                  Manual
+                <Image src={ManualIcon} alt="Manual Create Illustration" />
+                <CardTitle className="text-center text-sm font-medium ">
+                  Create Yourself
                 </CardTitle>
               </Card>
             </div>

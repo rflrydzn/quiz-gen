@@ -157,11 +157,11 @@ export default function MyQuizzes() {
                 {/* Quiz metadata */}
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                   <span className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                     Style: {quiz.style}
                   </span>
                   <span className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                     {quiz.number_of_items} questions
                   </span>
                 </div>
