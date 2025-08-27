@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { Toaster, toast } from "sonner";
 
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -212,7 +213,19 @@ const PracticeModeCreator = () => {
     const validQuestions = questions.filter(isQuestionValid);
 
     if (validQuestions.length === 0) {
-      alert("Please complete at least one question with all required fields.");
+      // alert("Please complete at least one question with all required fields.");
+      toast.warning(
+        "Please complete at least one question with all required fields.",
+        {
+          position: "bottom-right",
+          richColors: false, // turn off auto dark styling
+          style: {
+            background: "#FFD93D", // nice yellow
+            color: "#000000", // black text for readability
+          },
+        }
+      );
+
       return;
     }
 
@@ -332,17 +345,15 @@ const PracticeModeCreator = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen mx-28 my-14">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
               <AlertCircle className="text-white" size={24} />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Create Practice Set
-            </h1>
+            <h1 className="text-3xl font-bold ">Create Practice Set</h1>
           </div>
 
           {/* Practice Set Info */}
@@ -355,7 +366,7 @@ const PracticeModeCreator = () => {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="text-lg font-semibold border-2 focus:border-purple-500 transition-colors"
+                className="text-lg font-semibold border-2  transition-colors"
                 placeholder="Enter a title for your practice set"
               />
             </div>
@@ -661,7 +672,7 @@ const PracticeModeCreator = () => {
           <Button
             onClick={addQuestion}
             variant="outline"
-            className="w-full sm:w-auto border-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-500 transition-colors"
+            className="w-full sm:w-auto border-2 border-dashed transition-colors"
           >
             <Plus size={20} className="mr-2" />
             Add Question
@@ -678,7 +689,7 @@ const PracticeModeCreator = () => {
             </Button>
             <Button
               onClick={createPracticeSet}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 transition-all duration-200"
+              className="flex-1 sm:flex-none  transition-all duration-200"
             >
               <Save size={18} className="mr-2" />
               Create Practice Set

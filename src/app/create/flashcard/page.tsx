@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { GripVertical, X, Plus, Save, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
 type Card = {
@@ -131,6 +131,18 @@ const FlashcardCreator = () => {
       createdAt: new Date().toISOString(),
     };
 
+    if (studySet.cards.length === 0) {
+      toast.warning("Please complete at least one card.", {
+        position: "bottom-right",
+        richColors: false, // turn off auto dark styling
+        style: {
+          background: "#FFD93D", // nice yellow
+          color: "#000000", // black text for readability
+        },
+      });
+      return;
+    }
+
     // Here you would typically send to your backend
     console.log("Saving study set:", studySet);
     console.log("count", studySet.cards.length);
@@ -214,17 +226,15 @@ const FlashcardCreator = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+    <div className="min-h-screen mx-28 my-14">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12  rounded-xl flex items-center justify-center bg-primary">
               <Plus className="text-white" size={24} />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Create Study Set
-            </h1>
+            <h1 className="text-3xl font-bold ">Create Study Set</h1>
           </div>
 
           {/* Study Set Info */}
@@ -347,7 +357,7 @@ const FlashcardCreator = () => {
           <Button
             onClick={addCard}
             variant="outline"
-            className="w-full sm:w-auto border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-500 transition-colors"
+            className="w-full sm:w-auto border-2 border-dashed  transition-colors"
           >
             <Plus size={20} className="mr-2" />
             Add Card
@@ -364,7 +374,7 @@ const FlashcardCreator = () => {
             </Button>
             <Button
               onClick={saveStudySet}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+              className="flex-1 sm:flex-none  transition-all duration-200"
             >
               <Save size={18} className="mr-2" />
               Save Study Set

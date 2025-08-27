@@ -24,7 +24,7 @@ import {
 
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-
+import { toast } from "sonner";
 interface Question {
   id: string;
   question: string;
@@ -203,7 +203,17 @@ const ExamStyleCreator = () => {
     const validQuestions = questions.filter(isQuestionValid);
 
     if (validQuestions.length === 0) {
-      alert("Please complete at least one question with all required fields.");
+      toast.warning(
+        "Please complete at least one question with all required fields.",
+        {
+          position: "bottom-right",
+          richColors: false, // turn off auto dark styling
+          style: {
+            background: "#FFD93D", // nice yellow
+            color: "#000000", // black text for readability
+          },
+        }
+      );
       return;
     }
 
@@ -316,17 +326,15 @@ const ExamStyleCreator = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 p-6">
+    <div className="min-h-screen my-14 mx-28 ">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-600 rounded-xl flex items-center justify-center">
-              <BookOpen className="text-white" size={24} />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+              <BookOpen className="" size={24} />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              Create Exam
-            </h1>
+            <h1 className="text-3xl font-bold ">Create Exam</h1>
           </div>
 
           {/* Exam Info */}
@@ -653,7 +661,7 @@ const ExamStyleCreator = () => {
           <Button
             onClick={addQuestion}
             variant="outline"
-            className="w-full sm:w-auto border-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-500 transition-colors"
+            className="w-full sm:w-auto border-2 border-dashed transition-colors"
           >
             <Plus size={20} className="mr-2" />
             Add Question
@@ -670,7 +678,7 @@ const ExamStyleCreator = () => {
             </Button>
             <Button
               onClick={createExam}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-blue-500 to-green-600 hover:from-blue-600 hover:to-green-700 transition-all duration-200"
+              className="flex-1 sm:flex-none transition-all duration-200"
             >
               <Save size={18} className="mr-2" />
               Create Exam
