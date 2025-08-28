@@ -144,7 +144,9 @@ const PracticeQuizUI = ({ questions }: any) => {
   };
 
   const handleContinue = () => {
-    const filterRemaining = questions.filter((q) => knownAnswer[q.id] !== 2);
+    const filterRemaining = questions.filter(
+      (q: question) => knownAnswer[q.id] !== 2
+    );
     const mastered = Object.fromEntries(
       Object.entries(knownAnswer).filter(([id, value]) => value === 2)
     );
@@ -488,21 +490,23 @@ const PracticeQuizUI = ({ questions }: any) => {
                     value={userAnswer}
                     className="grid grid-cols-2 gap-3"
                   >
-                    {currentQuestion.choices.map((choice, index) => (
-                      <ToggleGroupItem
-                        variant="outline"
-                        value={choice}
-                        aria-label={choice}
-                        key={index}
-                        onClick={() => setUserAnswer(choice)}
-                        className={
-                          renderChoices(choice) +
-                          " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
-                        }
-                      >
-                        {choice}
-                      </ToggleGroupItem>
-                    ))}
+                    {currentQuestion.choices.map(
+                      (choice: string, index: number) => (
+                        <ToggleGroupItem
+                          variant="outline"
+                          value={choice}
+                          aria-label={choice}
+                          key={index}
+                          onClick={() => setUserAnswer(choice)}
+                          className={
+                            renderChoices(choice) +
+                            " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
+                          }
+                        >
+                          {choice}
+                        </ToggleGroupItem>
+                      )
+                    )}
                   </ToggleGroup>
                   <Button
                     onClick={() => {

@@ -1,16 +1,13 @@
 import {
-  Calendar,
   Home,
-  Inbox,
-  Search,
   Settings,
   FileText,
   PlusCircle,
   Bookmark,
   User,
   HelpCircle,
+  Archive,
 } from "lucide-react";
-import LoginButton from "./LoginLogoutButton";
 import {
   Sidebar,
   SidebarContent,
@@ -32,16 +29,11 @@ import { useState, useEffect } from "react";
 
 const supabase = createClient();
 
-// Menu items.
-const items = [
-  {
-    title: "Dashboard",
-    url: "#",
-    icon: Home,
-  },
+// Separate items into two groups
+const activeItems = [
   {
     title: "My Quizzes",
-    url: "/my-quizzes",
+    url: "/",
     icon: FileText,
   },
   {
@@ -49,24 +41,37 @@ const items = [
     url: "/create-quiz",
     icon: PlusCircle,
   },
+];
+
+const comingSoonItems = [
+  {
+    title: "Dashboard",
+    url: "/coming-soon",
+    icon: Home,
+  },
   {
     title: "Saved Quizzes",
-    url: "#",
+    url: "/coming-soon",
     icon: Bookmark,
   },
   {
+    title: "Uploads",
+    url: "/coming-soon",
+    icon: Archive,
+  },
+  {
     title: "Settings",
-    url: "#",
+    url: "/coming-soon",
     icon: Settings,
   },
   {
     title: "Profile",
-    url: "#",
+    url: "/coming-soon",
     icon: User,
   },
   {
     title: "Help / Feedback",
-    url: "#",
+    url: "/coming-soon",
     icon: HelpCircle,
   },
 ];
@@ -80,7 +85,6 @@ export function AppSidebar() {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
-      console.log("Fetched user:", user);
     };
     fetchUser();
   }, []);
@@ -103,13 +107,34 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Active links */}
         <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {activeItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Coming Soon links */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Coming Soon</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {comingSoonItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild tooltip="Coming Soon">
+                    <a href={item.url} className="text-gray-400">
                       <item.icon />
                       <span>{item.title}</span>
                     </a>

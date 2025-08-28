@@ -11,7 +11,7 @@ const LandingPage = () => {
       <div className="w-1/2 items-center justify-center flex h-screen">
         <div className="space-y-3">
           <h1 className="scroll-m-20 text-7xl font-extrabold tracking-tight text-balance">
-            QuizGenie
+            QuizMaster
           </h1>
           <p className="max-w-xl text-muted-foreground lg:text-xl">
             Create quizzes from your notes, PDFs, or text. Choose flashcards,

@@ -9,8 +9,9 @@ import { createClient } from "@/utils/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "../ui/badge";
 import { X } from "lucide-react";
-
+import LoadingThreeDotsJumping from "@/components/JumpingDots";
 import { Input } from "../ui/input";
+
 type quiz = {
   id: string;
   user_id: string;
@@ -52,6 +53,74 @@ export default function ExamQuizUI({
   const [timeLeft, setTimeLeft] = useState(20 * 60); // seconds (default 20 mins)
   const [startTime, setStartTime] = useState<number | null>(null);
   const [title, setTitle] = useState("Untitled Quiz");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Generate a unique key for localStorage based on quiz and user
+  const getStorageKey = (key: string) =>
+    `quiz_${quiz.id}_${quiz.user_id}_${key}`;
+
+  // Save timer state to localStorage
+  const saveTimerState = (remainingTime: number, startTimestamp: number) => {
+    localStorage.setItem(getStorageKey("timeLeft"), remainingTime.toString());
+    localStorage.setItem(getStorageKey("startTime"), startTimestamp.toString());
+    localStorage.setItem(getStorageKey("hasStarted"), "true");
+  };
+
+  // Load timer state from localStorage
+  const loadTimerState = () => {
+    const savedTimeLeft = localStorage.getItem(getStorageKey("timeLeft"));
+    const savedStartTime = localStorage.getItem(getStorageKey("startTime"));
+    const savedHasStarted = localStorage.getItem(getStorageKey("hasStarted"));
+
+    if (savedTimeLeft && savedStartTime && savedHasStarted === "true") {
+      const savedStart = parseInt(savedStartTime);
+      const savedTime = parseInt(savedTimeLeft);
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - savedStart) / 1000);
+      const currentTimeLeft = Math.max(0, savedTime - elapsedSeconds);
+
+      setStartTime(savedStart);
+      setTimeLeft(currentTimeLeft);
+      setHasStarted(true);
+
+      // If time has run out, auto-submit
+      if (currentTimeLeft <= 0) {
+        handleSubmitScore();
+      }
+
+      return true; // Timer was restored
+    }
+    return false; // No saved timer found
+  };
+
+  // Clear timer state from localStorage
+  const clearTimerState = () => {
+    localStorage.removeItem(getStorageKey("timeLeft"));
+    localStorage.removeItem(getStorageKey("startTime"));
+    localStorage.removeItem(getStorageKey("hasStarted"));
+  };
+
+  const [userAnswers, setUserAnswers] = useState<{
+    [questionId: string]: string;
+  }>({});
+  const [correctAnswers, setCorrectAnswers] = useState<{
+    [questionId: string]: string;
+  }>({});
+  const [quizStatus, setQuizStatus] = useState<string>("");
+  const [submitted, isSubmitted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [score, setScore] = useState<{
+    score: number;
+    totalItems: number;
+  }>();
+  const [aiFeedback, setAIFeedback] = useState<{
+    [questionId: string]: {
+      criteria: string;
+      grade: number;
+    };
+  }>({});
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadSavedAnswers = async () => {
@@ -66,9 +135,13 @@ export default function ExamQuizUI({
         .select("status, title")
         .eq("id", quiz.id)
         .single();
-      console.log("data", quizdata);
-      if (quizdata?.status === "taken") setIsTaken(true);
+
+      if (quizdata?.status === "taken") {
+        setIsTaken(true);
+        clearTimerState(); // Clear timer if quiz is already taken
+      }
       setTitle(quizdata?.title);
+
       if (error) {
         console.error("Error loading saved answers", error);
         return;
@@ -106,58 +179,35 @@ export default function ExamQuizUI({
           totalItems: quiz.number_of_items,
         });
         isSubmitted(true);
+        clearTimerState(); // Clear timer state when quiz is submitted
+      } else {
+        // Only try to restore timer if quiz hasn't been submitted
+        loadTimerState();
       }
     };
 
     loadSavedAnswers();
   }, [quiz.id, quiz.user_id]);
 
-  const [userAnswers, setUserAnswers] = useState<{
-    [questionId: string]: string;
-  }>({});
-  const [correctAnswers, setCorrectAnswers] = useState<{
-    [questionId: string]: string;
-  }>({});
-  const [quizStatus, setQuizStatus] = useState<string>("");
-  const [submitted, isSubmitted] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [score, setScore] = useState<{
-    score: number;
-    totalItems: number;
-  }>();
-  const [aiFeedback, setAIFeedback] = useState<{
-    [questionId: string]: {
-      criteria: string;
-      grade: number;
-    };
-  }>({});
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  console.log("quiz types", quiz);
-  console.log("questions types", questions);
-
   useEffect(() => {
-    // const answers = questions.map((q) => q.answer);
     const answers = questions.map((q) =>
       setCorrectAnswers((prev) => ({ ...prev, [q.id]: q.answer }))
     );
-    // setCorrectAnswers(prev => ({...prev, [q.]})));
-    console.log("corectt", answers);
   }, [questions]);
 
-  useEffect(() => console.log("user answ", userAnswers), [userAnswers]);
-
-  console.log("answ", correctAnswers);
-
   const handleSubmitScore = async () => {
+    setIsLoading(true);
+    clearTimerState(); // Clear timer state on submit
+
     if (startTime) {
       const elapsedMs = Date.now() - startTime;
-      const elapsedSeconds = Math.floor(elapsedMs / 1000); // convert ms → seconds
-      const elapsedMinutes = Math.floor(elapsedMs / 60000); // for saving in DB
+      const elapsedSeconds = Math.floor(elapsedMs / 1000);
+      const elapsedMinutes = Math.floor(elapsedMs / 60000);
 
       console.log("⏳ Time taken (formatted):", formatTime(elapsedSeconds));
       console.log("⏳ Time taken (minutes):", elapsedMinutes);
     }
+
     let calculatedScore = 0;
     const newAIFeedback: {
       [questionId: string]: {
@@ -192,27 +242,21 @@ export default function ExamQuizUI({
     setAIFeedback(newAIFeedback);
     setScore({ score: calculatedScore, totalItems: quiz.number_of_items });
 
-    // Now safe to save to DB
+    // Save to database
     const responses = questions.map((q) => ({
       quiz_id: quiz.id,
       question_id: q.id,
       user_id: quiz.user_id,
-
-      // Choices (Multiple Choice & True/False)
       selected_choice:
         q.type === "Multiple Choice" || q.type === "True/False"
           ? userAnswers[q.id]
           : null,
-
-      // Text answers (Open-Ended & Fill in the Blank)
       submitted_text:
         q.type === "Open-Ended" || q.type === "Fill in the Blank"
           ? userAnswers[q.id]
           : null,
-
       ai_feedback:
         q.type === "Open-Ended" ? newAIFeedback[q.id]?.criteria : null,
-
       score:
         q.type === "Open-Ended"
           ? newAIFeedback[q.id]?.grade
@@ -221,29 +265,24 @@ export default function ExamQuizUI({
           : 0,
     }));
 
-    // You can now POST `responses` to your backend
-    const supabase = createClient();
     const { error } = await supabase.from("quiz_answers").insert(responses);
     if (error) {
       console.error("Error saving to db", error);
-    } else {
-      console.log("Saved to db");
+      setIsLoading(false);
+      return;
     }
 
     const { error: statusError } = await supabase
       .from("quizzes")
       .update({ status: "taken" })
       .eq("id", quiz.id);
+
     if (statusError) {
       console.error("Error updating quiz status");
-    } else {
-      ("Marked quiz as taken");
     }
 
-    // simulate processing time
-    setTimeout(() => {
-      window.location.reload(); // hard reload (forces fresh render with submitted state from DB/localStorage)
-    }, 1500);
+    window.location.reload();
+    setIsLoading(false);
   };
 
   const scrollToNextUnanswered = () => {
@@ -266,12 +305,18 @@ export default function ExamQuizUI({
   };
 
   const handleStart = () => {
+    setIsLoading(true);
     setHasStarted(true);
-    setStartTime(Date.now());
+    const now = Date.now();
+    setStartTime(now);
+
+    // Save initial timer state to localStorage
+    saveTimerState(timeLeft, now);
+
+    setIsLoading(false);
   };
 
   const getAIGradedScore = async (q: any) => {
-    console.log();
     const res = await fetch("/api/grade-answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -297,7 +342,7 @@ export default function ExamQuizUI({
     return data;
   };
 
-  // Timer effect
+  // Timer effect - now saves to localStorage every second
   useEffect(() => {
     if (!hasStarted || submitted) return;
 
@@ -307,11 +352,32 @@ export default function ExamQuizUI({
     }
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        const newTimeLeft = prev - 1;
+        // Save updated time to localStorage every second
+        if (startTime) {
+          saveTimerState(newTimeLeft, startTime);
+        }
+        return newTimeLeft;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [hasStarted, timeLeft, submitted]);
+  }, [hasStarted, timeLeft, submitted, startTime]);
+  const getMessage = (score: number) => {
+    if (score >= 90) {
+      return "🏆 Excellent!";
+    } else if (score >= 75) {
+      return "👏 Great Job!";
+    } else if (score >= 50) {
+      return "🙂 Keep Practicing!";
+    } else {
+      return "😢 Try Again!";
+    }
+  };
+  if (isLoading) {
+    return <LoadingThreeDotsJumping />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen ">
@@ -321,13 +387,10 @@ export default function ExamQuizUI({
             {title}
           </h3>
         </div>
-        {!submitted ? (
+
+        {hasStarted && !submitted ? (
           <div className="flex justify-center">
-            <h3
-              className={`scroll-m-20 text-2xl font-semibold tracking-tight ${
-                !submitted ? "hidden" : " "
-              }`}
-            >
+            <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
               {Object.keys(userAnswers).length} / {questions.length} &middot;
               <div className="text-lg font-semibold">
                 ⏱ {formatTime(timeLeft)}
@@ -345,28 +408,31 @@ export default function ExamQuizUI({
         </div>
       </div>
 
-      <div className="mx-32 my-10  ">
+      <div className="mx-32 my-10">
         {submitted && (
           <div className="flex justify-between">
-            <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance w-72">
-              Don't worry you'll bounce back{" "}
+            <h1 className="scroll-m-20 text-3xl font-extrabold tracking-tight text-balance w-72">
+              {getMessage(
+                score ? Math.round((score.score / score.totalItems) * 100) : 0
+              )}
             </h1>
             <div className="flex gap-5">
               <div className="flex flex-col">
                 <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
                   Score:
                 </h3>
-                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
-                  {" "}
-                  54%
+                <h1 className="scroll-m-20 text-3xl font-extrabold tracking-tight text-balance">
+                  {score
+                    ? Math.round((score.score / score.totalItems) * 100)
+                    : 0}
+                  %
                 </h1>
               </div>
               <div className="flex flex-col">
                 <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                  Resuls:
+                  Results:
                 </h3>
-                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
-                  {" "}
+                <h1 className="scroll-m-20 text-3xl font-extrabold tracking-tight text-balance">
                   {score?.score} / {questions.length}
                 </h1>
               </div>
@@ -374,15 +440,18 @@ export default function ExamQuizUI({
                 <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
                   Total Time:
                 </h3>
-                <h1 className="scroll-m-20  text-3xl font-extrabold tracking-tight text-balance">
-                  6m{" "}
+                <h1 className="scroll-m-20 text-3xl font-extrabold tracking-tight text-balance">
+                  {startTime
+                    ? formatTime(Math.floor((Date.now() - startTime) / 1000))
+                    : "N/A"}
                 </h1>
               </div>
             </div>
           </div>
         )}
+
         {questions.map((q: any, index: number) => (
-          <div key={q.id} className=" p-4  mb-6">
+          <div key={q.id} className="p-4 mb-6">
             <p className="font-semibold mb-3">
               {index + 1}. {q.question}
             </p>
@@ -439,12 +508,12 @@ export default function ExamQuizUI({
 
                   if (isTaken) {
                     if (val === correctAnswer && userAnswer === correctAnswer) {
-                      labelClass = "text-green-600 font-semibold"; // correct selected
+                      labelClass = "text-green-600 font-semibold";
                     } else if (
                       val === userAnswer &&
                       userAnswer !== correctAnswer
                     ) {
-                      labelClass = "text-red-600 font-semibold"; // wrong selected
+                      labelClass = "text-red-600 font-semibold";
                     }
                   }
 
@@ -459,6 +528,7 @@ export default function ExamQuizUI({
                 })}
               </RadioGroup>
             )}
+
             {/* Fill in the Blank */}
             {q.type === "Fill in the Blank" && (
               <div className="mt-3">
@@ -481,7 +551,6 @@ export default function ExamQuizUI({
                   }`}
                 />
 
-                {/* Show correct answer if user's answer is wrong */}
                 {submitted &&
                   userAnswers[q.id] &&
                   userAnswers[q.id] !== correctAnswers[q.id] && (
@@ -496,6 +565,7 @@ export default function ExamQuizUI({
                   )}
               </div>
             )}
+
             {/* Open-Ended */}
             {q.type === "Open-Ended" && (
               <div className="mt-3 relative">
@@ -511,11 +581,13 @@ export default function ExamQuizUI({
                   }
                   className="w-full"
                 />
-                <Badge className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums absolute top-0 right-0">
-                  {aiFeedback[q.id]?.grade}
-                </Badge>
+                {aiFeedback[q.id]?.grade !== undefined && (
+                  <Badge className="h-5 min-w-5 rounded-full px-1 font-mono tabular-nums absolute top-0 right-0">
+                    {aiFeedback[q.id]?.grade}
+                  </Badge>
+                )}
                 <p className="leading-7 [&:not(:first-child)]:mt-1">
-                  {aiFeedback[q.id]?.grade ??
+                  {aiFeedback[q.id]?.criteria ||
                     "Your answer will be graded by AI."}
                 </p>
 
@@ -545,7 +617,6 @@ export default function ExamQuizUI({
             </Button>
           ) : (
             <div className="flex w-full items-center justify-between gap-6">
-              {/* Left side inputs */}
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <Label>Time (mins):</Label>
@@ -566,7 +637,6 @@ export default function ExamQuizUI({
                 </div>
               </div>
 
-              {/* Right side start button */}
               <Button size="lg" onClick={handleStart}>
                 Start Test
               </Button>

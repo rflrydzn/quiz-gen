@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
 
   // Revalidate the entire app to update server components
   revalidatePath("/", "layout");
-  redirect("/my-quizzes");
+  redirect("/");
 }
 
 export async function signup(formData: FormData) {
