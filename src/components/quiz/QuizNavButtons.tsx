@@ -23,7 +23,7 @@ type QuizletControlsProps = {
   currentIndex: number;
   totalQuestions: number;
   roundQuestionLength: number;
-  isVerticalLayout: boolean;
+  isVerticalLayout?: boolean;
   hint: string;
   onProgressMode: () => void;
   onPrev: () => void;

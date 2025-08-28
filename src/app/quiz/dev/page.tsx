@@ -1,379 +1,541 @@
 "use client";
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import questions from "@/../test.json";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { createClient } from "@/utils/supabase/client";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { X } from "lucide-react";
-import questions from "@/../exam.json";
-import quiz from "@/../examq.json";
-type quiz = {
-  id: string;
-  user_id: string;
-  created_at: string;
-  difficulty: string;
-  number_of_items: number;
-  source_file_url?: string;
-  source_text?: string;
-  style: string;
-  status: string;
-};
-
-type question = {
-  id: string;
-  quiz_id: string;
-  answer: string;
-  back: string;
-  choices: string[];
-  created_at: string;
-  difficulty: string;
-  explanation: string;
-  front: string;
-  hint: string;
-  question: string;
-  type: string;
-};
-
-// const supabase = createClient();
-
-export default function ExamQuizUI({}: //   quiz,
-//   questions,
-{
-  //   quiz: quiz;
-  //   questions: question[];
-}) {
-  //   useEffect(() => {
-  //     const loadSavedAnswers = async () => {
-  //       const { data, error } = await supabase
-  //         .from("quiz_answers")
-  //         .select("*")
-  //         .eq("quiz_id", quiz.id)
-  //         .eq("user_id", quiz.user_id);
-
-  //       if (error) {
-  //         console.error("Error loading saved answers", error);
-  //         return;
-  //       }
-
-  //       if (data && data.length > 0) {
-  //         const savedUserAnswers: { [key: string]: string } = {};
-  //         const savedFeedback: {
-  //           [questionId: string]: { criteria: string; grade: number };
-  //         } = {};
-
-  //         let scoreSum = 0;
-
-  //         for (const answer of data) {
-  //           if (answer.submitted_text !== null) {
-  //             savedUserAnswers[answer.question_id] = answer.submitted_text;
-  //           } else if (answer.selected_choice !== null) {
-  //             savedUserAnswers[answer.question_id] = answer.selected_choice;
-  //           }
-
-  //           if (answer.ai_feedback) {
-  //             savedFeedback[answer.question_id] = {
-  //               criteria: answer.ai_feedback,
-  //               grade: answer.score ?? 0,
-  //             };
-  //           }
-
-  //           scoreSum += answer.score ?? 0;
-  //         }
-
-  //         setUserAnswers(savedUserAnswers);
-  //         setAIFeedback(savedFeedback);
-  //         setScore({
-  //           score: scoreSum,
-  //           totalItems: quiz.number_of_items,
-  //         });
-  //         isSubmitted(true);
-  //       }
-  //     };
-
-  //     loadSavedAnswers();
-  //   }, [quiz.id, quiz.user_id]);
-  const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const [userAnswers, setUserAnswers] = useState<{
-    [questionId: string]: string;
+import PracticeModeSummary from "./PracticeModeSummary";
+const PracticeQuizUI = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
+  const [knownAnswer, setKnownAnswer] = useState<{
+    [questionId: string]: number;
   }>({});
-  const [correctAnswers, setCorrectAnswers] = useState<any>([]);
-  const [quizStatus, setQuizStatus] = useState<string>("");
-  const [submitted, isSubmitted] = useState(false);
-  const [score, setScore] = useState<{
-    score: number;
-    totalItems: number;
-  }>();
-  const [aiFeedback, setAIFeedback] = useState<{
-    [questionId: string]: {
-      criteria: string;
-      grade: number;
-    };
-  }>({});
-
-  const inputRef = useRef<HTMLInputElement>(null);
-  console.log("quiz types", quiz);
-  console.log("questions types", questions);
-
-  useEffect(() => {
-    const answers = questions.map((q) => q.answer);
-    setCorrectAnswers(answers);
-  }, [questions]);
-
-  useEffect(() => console.log("user answ", userAnswers), [userAnswers]);
-
-  console.log("answ", correctAnswers);
-
-  const handleSubmitScore = async () => {
-    //     let calculatedScore = 0;
-    //     const newAIFeedback: {
-    //       [questionId: string]: {
-    //         criteria: string;
-    //         grade: number;
-    //       };
-    //     } = {};
-    //     isSubmitted(true);
-    //     // Grade all questions
-    //     const gradingPromises = questions.map(async (q) => {
-    //       const userAnswer = userAnswers[q.id];
-    //       if (q.type === "Open-Ended") {
-    //         const res = await getAIGradedScore(q);
-    //         calculatedScore += res?.grade || 0;
-    //         newAIFeedback[q.id] = {
-    //           criteria: res?.criteria,
-    //           grade: res?.grade,
-    //         };
-    //       } else {
-    //         if (userAnswer === q.answer) {
-    //           calculatedScore += 1;
-    //         }
-    //       }
-    //     });
-    //     await Promise.all(gradingPromises);
-    //     setAIFeedback(newAIFeedback);
-    //     setScore({ score: calculatedScore, totalItems: quiz.number_of_items });
-    //     // Now safe to save to DB
-    //     const responses = questions.map((q) => ({
-    //       quiz_id: quiz.id,
-    //       question_id: q.id,
-    //       user_id: quiz.user_id,
-    //       selected_choice: q.type === "Multiple Choice" ? userAnswers[q.id] : null,
-    //       submitted_text: q.type === "Open-Ended" ? userAnswers[q.id] : null,
-    //       ai_feedback:
-    //         q.type === "Open-Ended" ? newAIFeedback[q.id]?.criteria : null,
-    //       score:
-    //         q.type === "Open-Ended"
-    //           ? newAIFeedback[q.id]?.grade
-    //           : q.answer === userAnswers[q.id]
-    //           ? 1
-    //           : 0,
-    //     }));
-    //     // You can now POST `responses` to your backend
-    //     const supabase = createClient();
-    //     const { error } = await supabase.from("quiz_answers").insert(responses);
-    //     if (error) {
-    //       console.error("Error saving to db", error);
-    //     } else {
-    //       console.log("Saved to db");
-    //     }
-    //     const { error: statusError } = await supabase
-    //       .from("quizzes")
-    //       .update({ status: "taken" })
-    //       .eq("id", quiz.id);
-    //     if (statusError) {
-    //       console.error("Error updating quiz status");
-    //     } else {
-    //       ("Marked quiz as taken");
-    //     }
+  const [unknownAnswer, setUnknownAnswer] = useState<string[]>([]);
+  const [retryAttempts, setRetryAttempts] = useState(0);
+  const [waitingForNext, setWaitingForNext] = useState(false);
+  const [isSkipped, setisSkipped] = useState(false);
+  const [roundQuestions, setRoundQuestions] = useState(questions);
+  const [currentQuestionInterface, setCurrentQuestionInterface] = useState<
+    "mcq" | "input"
+  >("mcq");
+  const [firstInput, setFirstInput] = useState("");
+  const [secondInput, setSecondInput] = useState("");
+  const [isRoundTwo, setIsRoundTwo] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const secondInputRef = useRef<HTMLInputElement>(null);
+  const currentQuestion = roundQuestions[currentIndex];
+  const lastQuestionIndex = roundQuestions.length - 1;
+  const correctAnswer = currentQuestion.answer;
+  const [isCorrect, setIsCorrect] = useState(false);
+  const percentageScore =
+    (Object.values(knownAnswer).reduce((acc, curr) => acc + curr, 0) /
+      (questions.length * 2)) *
+    100;
+  const summaryKnownCount = Object.values(knownAnswer).reduce(
+    (acc, curr) => acc + curr,
+    0
+  );
+  const isOpenEnded = (questionId: string) => {
+    return knownAnswer.hasOwnProperty(questionId);
   };
 
-  const scrollToNextUnanswered = () => {
-    const unansweredIndex = questions.findIndex((q) => !userAnswers[q.id]);
-    if (unansweredIndex !== -1 && questionRefs.current[unansweredIndex]) {
-      questionRefs.current[unansweredIndex]?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
+  const shuffleArray = (array: any[]) => {
+    // Fisher-Yates shuffle
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  const nextQuestionToaster = () => {
+    return toast("Press any key to continue.", {
+      action: {
+        label: "Continue",
+        onClick: () => nextQuestion(),
+      },
+    });
+  };
+
+  const nextQuestion = () => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    if (currentIndex === lastQuestionIndex) {
+      const shuffled = shuffleArray(roundQuestions);
+      setRoundQuestions(shuffled);
+      setIsRoundTwo(true);
+      setCurrentIndex(0);
+    } else {
+      setCurrentIndex((prev) => Math.min(prev + 1, lastQuestionIndex));
+    }
+    if (currentIndex === lastQuestionIndex && isRoundTwo) {
+      setShowSummary(true);
+    }
+    resetQuestionState();
+  };
+
+  const handleKnown = () => {
+    if (retryAttempts === 0) {
+      setKnownAnswer((prev) => ({
+        ...prev,
+        [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
+      }));
+    }
+
+    if (retryAttempts === 1) {
+      setKnownAnswer((prev) => ({
+        ...prev,
+        [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 0,
+      }));
+    }
+    setTimeout(() => nextQuestion(), 1000);
+  };
+
+  const handleUnknown = () => {
+    setUnknownAnswer((prevUnknown) => {
+      if (prevUnknown.includes(currentQuestion.id)) {
+        return prevUnknown; // already added, don't duplicate
+      }
+      return [...prevUnknown, currentQuestion.id];
+    });
+    setTimeout(() => setWaitingForNext(true), 100);
+    nextQuestionToaster();
+  };
+  const resetQuestionState = () => {
+    setUserAnswer("");
+    setRetryAttempts(0);
+    setWrongAnswers([]);
+    setWaitingForNext(false);
+    setisSkipped(false); // ✅ reset skip flag
+    setIsCorrect(false);
+    setFirstInput("");
+    setSecondInput("");
+  };
+
+  const handleSubmit = () => {
+    const attemptValue = retryAttempts === 0 ? firstInput : secondInput;
+    const lowercaseInput = attemptValue.toLowerCase();
+    const lowercaseAnswer = correctAnswer.toLowerCase();
+
+    if (lowercaseInput === lowercaseAnswer) {
+      setIsCorrect(true);
+      handleKnown();
+    } else {
+      setRetryAttempts((prev) => {
+        const newCount = prev + 1;
+        if (newCount === 2) handleUnknown();
+        return newCount;
       });
     }
+    firstInputRef.current?.blur(); // optional: remove focus
+    secondInputRef.current?.blur();
   };
 
-  const getAIGradedScore = async (q: any) => {
-    console.log();
-    const res = await fetch("/api/grade-answer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question: q.question,
-        userAnswer: userAnswers[q.id],
-      }),
-    });
-    if (!res.ok) {
-      const error = await res.json();
-      console.error("Error generating quiz:", error);
-      return;
+  const handleContinue = () => {
+    const filterRemaining = questions.filter((q) => knownAnswer[q.id] !== 2);
+    const mastered = Object.fromEntries(
+      Object.entries(knownAnswer).filter(([id, value]) => value === 2)
+    );
+
+    setRoundQuestions(filterRemaining);
+    console.log("reset", roundQuestions);
+    setShowSummary(false);
+    setIsRoundTwo(false);
+    setUnknownAnswer([]);
+    setCurrentIndex(0);
+    setKnownAnswer(mastered);
+    console.log("reset", roundQuestions);
+  };
+
+  const handleReset = () => {
+    setRoundQuestions(questions);
+    setShowSummary(false);
+    setIsRoundTwo(false);
+    setUnknownAnswer([]);
+    setKnownAnswer({});
+    setCurrentIndex(0);
+    toast.dismiss();
+  };
+  // Check answer when user selects
+  useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
+  useEffect(() => console.log("known", knownAnswer));
+  useEffect(() => console.log("unknown", unknownAnswer));
+  useEffect(() => {
+    if (retryAttempts === 1) {
+      secondInputRef.current?.focus();
     }
-    const data = await res.json();
-    setAIFeedback((prev) => ({
-      ...prev,
-      [q.id]: {
-        criteria: data?.criteria,
-        grade: data?.grade,
-      },
-    }));
+  }, [retryAttempts]);
 
-    return data;
+  useEffect(() => {
+    if (userAnswer === "") return;
+
+    if (!isOpenEnded(currentQuestion.id)) {
+      if (userAnswer !== correctAnswer) {
+        setWrongAnswers((prev) => [...prev, userAnswer]);
+        setRetryAttempts((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 2) {
+            handleUnknown();
+          }
+          return newCount;
+        });
+      } else if (userAnswer === correctAnswer) {
+        if (retryAttempts <= 1) {
+          handleKnown();
+        }
+      }
+    }
+  }, [userAnswer, correctAnswer, currentQuestion.id]);
+
+  // Update this in your nextQuestion function or when currentIndex changes
+  useEffect(() => {
+    // Determine interface type when question loads, before any user interaction
+    const shouldShowInput = isOpenEnded(currentQuestion.id) && isRoundTwo;
+    setCurrentQuestionInterface(shouldShowInput ? "input" : "mcq");
+  }, [currentIndex, isRoundTwo, currentQuestion.id]);
+
+  // Auto-next when waiting and user presses a key
+  useEffect(() => {
+    if (!waitingForNext) return;
+    const handleKeyPress = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation(); // stop event bubbling
+      nextQuestion();
+    };
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [waitingForNext]);
+
+  const renderChoices = (choice: string) => {
+    switch (true) {
+      // Keep wrong answers red
+      case wrongAnswers.includes(choice):
+        return "border-red-400";
+
+      // Correct answer green if selected OR after 2 wrongs
+      case choice === correctAnswer &&
+        (userAnswer === correctAnswer || wrongAnswers.length >= 2):
+        return "border-green-400";
+      case choice === correctAnswer && isSkipped:
+        return "border-green-400";
+      default:
+        return "";
+    }
   };
 
+  if (showSummary)
+    return (
+      <PracticeModeSummary
+        questions={questions}
+        knownAnswer={knownAnswer}
+        percentageScore={percentageScore}
+        summaryKnownCount={summaryKnownCount}
+        onHandleContinue={() => handleContinue()}
+        onHandleReset={() => handleReset()}
+      />
+    );
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="grid grid-cols-3 items-center border-b p-4">
-        <div>
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            Solar system practice exam
-          </h3>
-        </div>
-        <div className="flex justify-center">
-          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-            {Object.keys(userAnswers).length} / {questions.length} &middot;
-            20:00
-          </h3>
-        </div>
-        <div className="flex justify-end">
-          <Button variant="ghost">
-            <X />
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-start px-4 py-6">
+      <div className=" flex flex-col gap-5 w-full max-w-4xl mt-16">
+        <div className="w-full flex items-center justify-center">
+          {/* Progress bar */}
+          <div className="relative w-full">
+            <Progress value={percentageScore} className="h-4" />
 
-      <div className="mx-32 my-10 ">
-        {/* <div className="flex justify-between">
-        <h2 className="text-2xl font-bold mb-4">Exam Quiz</h2>{" "}
-        <h2>
-          {score?.score}/{score?.totalItems}
-        </h2>
-      </div> */}
-
-        {questions.map((q: any, index: number) => (
-          <div
-            key={`${q.quiz_id}-${index}`}
-            className="p-4 mb-6 "
-            ref={(el) => (questionRefs.current[index] = el)}
-          >
-            {/* Question Text */}
-            <p className="font-semibold mb-3">
-              {index + 1}. {q.question}
-            </p>
-
-            {/* Multiple Choice */}
-            {q.type === "Multiple Choice" && q.choices.length > 0 && (
-              <RadioGroup
-                value={userAnswers[q.quiz_id + index] || ""}
-                onValueChange={(value) =>
-                  setUserAnswers((prev) => ({
-                    ...prev,
-                    [q.quiz_id + index]: value,
-                  }))
-                }
-                className="space-y-2"
-              >
-                {q.choices.map((choice: string, i: number) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <RadioGroupItem
-                      value={choice}
-                      id={`${q.quiz_id}-${index}-${i}`}
-                    />
-                    <Label htmlFor={`${q.quiz_id}-${index}-${i}`}>
-                      {choice}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            )}
-
-            {/* True / False */}
-            {q.type === "True/False" && (
-              <RadioGroup
-                value={userAnswers[q.quiz_id + index] || ""}
-                onValueChange={(value) =>
-                  setUserAnswers((prev) => ({
-                    ...prev,
-                    [q.quiz_id + index]: value,
-                  }))
-                }
-                className="space-y-2"
-              >
-                {["True", "False"].map((val) => (
-                  <div key={val} className="flex items-center gap-3">
-                    <RadioGroupItem
-                      value={val}
-                      id={`${q.quiz_id}-${index}-${val}`}
-                    />
-                    <Label htmlFor={`${q.quiz_id}-${index}-${val}`}>
-                      {val}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            )}
-
-            {/* Fill in the Blank */}
-            {q.type === "Fill in the Blank" && (
-              <div className="mt-3">
-                <Textarea
-                  placeholder="Enter your answer..."
-                  value={userAnswers[q.quiz_id + index] || ""}
-                  onChange={(e) =>
-                    setUserAnswers((prev) => ({
-                      ...prev,
-                      [q.quiz_id + index]: e.target.value,
-                    }))
-                  }
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {/* Open-Ended */}
-            {q.type === "Open-Ended" && (
-              <div className="mt-3">
-                <Textarea
-                  placeholder="Write your detailed answer..."
-                  value={userAnswers[q.quiz_id + index] || ""}
-                  onChange={(e) =>
-                    setUserAnswers((prev) => ({
-                      ...prev,
-                      [q.quiz_id + index]: e.target.value,
-                    }))
-                  }
-                  className="w-full"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {aiFeedback[q.quiz_id + index]?.grade ??
-                    "Your answer will be graded by AI."}
-                </p>
-              </div>
-            )}
+            {/* Circle count at the end of the progress */}
+            <div
+              className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
+              style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
+            >
+              {summaryKnownCount}
+            </div>
           </div>
-        ))}
-        {/* <Button onClick={handleSubmitScore} hidden={submitted}>
-          Submit
-        </Button> */}
+
+          <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
+            {questions.length * 2}
+          </div>
+        </div>
+        {/* main */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentIndex} // important: triggers animation when index changes
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="text-xl font-semibold"
+          >
+            <h3 className="text-center scroll-m-20 text-2xl font-semibold tracking-tight my-5">
+              {currentQuestion.question}
+            </h3>
+
+            <div className="flex flex-col gap-3">
+              {currentQuestionInterface === "input" ? (
+                <div className="flex flex-col gap-3">
+                  <div className="">
+                    <Label className="mb-2">
+                      {isSkipped && retryAttempts === 1
+                        ? "No sweat, you're still learning!"
+                        : isCorrect && retryAttempts === 0
+                        ? "Good job"
+                        : isCorrect && retryAttempts === 1
+                        ? "You're getting it! You'll see this again later."
+                        : retryAttempts === 2 && !isCorrect
+                        ? "Let's keep practicing! You'll see this again later."
+                        : retryAttempts >= 2
+                        ? "You will see this again later"
+                        : isSkipped
+                        ? "Give this one a try later"
+                        : retryAttempts === 1 && isOpenEnded(currentQuestion.id)
+                        ? "Previous answer"
+                        : retryAttempts === 1
+                        ? "Let's try again"
+                        : isOpenEnded(currentQuestion.id)
+                        ? "Your Answer"
+                        : "Choose an option"}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        onChange={(e) => setFirstInput(e.target.value)}
+                        value={firstInput}
+                        disabled={retryAttempts !== 0 || isSkipped}
+                        className={
+                          isCorrect && retryAttempts === 1
+                            ? "hidden"
+                            : retryAttempts !== 0
+                            ? "border-red-300 h-12"
+                            : isCorrect
+                            ? " border-green-300 h-12"
+                            : "h-12"
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSubmit();
+                        }}
+                        ref={firstInputRef}
+                        placeholder={isSkipped ? "Skipped" : ""}
+                      />
+
+                      {/* ✅ ❌ animation for first input */}
+                      <AnimatePresence mode="wait">
+                        {isCorrect && retryAttempts === 0 && (
+                          <motion.div
+                            key="check"
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                          >
+                            <Check size={20} />
+                          </motion.div>
+                        )}
+                        {((!isCorrect && retryAttempts !== 0) ||
+                          (isSkipped && retryAttempts === 0)) && (
+                          <motion.div
+                            key="x"
+                            initial={{ opacity: 0, scale: 0, rotate: -45 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 0, rotate: 45 }}
+                            transition={{ duration: 0.25 }}
+                            className={`absolute right-2 top-1/2 -translate-y-1/2 ${
+                              isSkipped && retryAttempts === 0
+                                ? " text-muted"
+                                : "text-red-500"
+                            }`}
+                          >
+                            <X size={20} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                  {/* second */}
+                  <AnimatePresence initial={false}>
+                    {(retryAttempts !== 0 || isSkipped) && (
+                      <motion.div
+                        initial={{ x: -50, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <Label
+                          className={
+                            retryAttempts === 0 && !isSkipped
+                              ? "hidden"
+                              : "inline mb-2"
+                          }
+                        >
+                          {retryAttempts === 2 || isSkipped
+                            ? "Correct Answer"
+                            : retryAttempts === 1 && !isCorrect
+                            ? "Let's try again"
+                            : ""}
+                        </Label>
+                        <div className="relative">
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={`input-state-${
+                                isSkipped
+                                  ? "skipped"
+                                  : retryAttempts === 2
+                                  ? "failed"
+                                  : "active"
+                              }`}
+                              initial={
+                                isSkipped || retryAttempts === 2
+                                  ? { y: -20, opacity: 0 } // Top-to-bottom when showing answer
+                                  : { opacity: 1 } // No animation for normal input
+                              }
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ duration: 0.3, ease: "easeOut" }}
+                            >
+                              <Input
+                                className={
+                                  retryAttempts === 0 && !isSkipped
+                                    ? "hidden"
+                                    : `inline h-12 ${
+                                        isCorrect ||
+                                        isSkipped ||
+                                        retryAttempts === 2
+                                          ? "border-green-300"
+                                          : ""
+                                      }`
+                                }
+                                onChange={(e) => setSecondInput(e.target.value)}
+                                value={
+                                  isSkipped || retryAttempts === 2
+                                    ? correctAnswer
+                                    : secondInput ?? ""
+                                }
+                                disabled={retryAttempts !== 1}
+                                ref={secondInputRef}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") handleSubmit();
+                                }}
+                              />
+                            </motion.div>
+                          </AnimatePresence>
+
+                          {/* ✅ ❌ animation for second input */}
+                          <AnimatePresence mode="wait">
+                            {(isCorrect && retryAttempts === 1) ||
+                              isSkipped ||
+                              (retryAttempts === 2 && (
+                                <motion.div
+                                  key="check-2"
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                                >
+                                  <Check size={20} />
+                                </motion.div>
+                              ))}
+                            {!isCorrect &&
+                              retryAttempts === 0 &&
+                              !isSkipped && (
+                                <motion.div
+                                  key="x-2"
+                                  initial={{
+                                    opacity: 0,
+                                    scale: 0,
+                                    rotate: -45,
+                                  }}
+                                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                  exit={{ opacity: 0, scale: 0, rotate: 45 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500"
+                                >
+                                  <X size={20} />
+                                </motion.div>
+                              )}
+                          </AnimatePresence>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div className="self-end">
+                    <Button onClick={handleSubmit}>Submit</Button>
+                    <Button
+                      onClick={() => {
+                        setisSkipped(true);
+                        handleUnknown();
+                      }}
+                      variant="ghost"
+                      className="self-end"
+                    >
+                      {retryAttempts === 0 ? "Don't know?" : "Skip"}
+                    </Button>
+                  </div>
+                  {/* <Button onClick={getSummary}>GET summary</Button> */}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <ToggleGroup
+                    type="single"
+                    value={userAnswer}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    {currentQuestion.choices.map((choice, index) => (
+                      <ToggleGroupItem
+                        variant="outline"
+                        value={choice}
+                        aria-label={choice}
+                        key={index}
+                        onClick={() => setUserAnswer(choice)}
+                        className={
+                          renderChoices(choice) +
+                          " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
+                        }
+                      >
+                        {choice}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                  <Button
+                    onClick={() => {
+                      setisSkipped(true);
+                      handleUnknown();
+                    }}
+                    variant="ghost"
+                    className="self-end"
+                  >
+                    {retryAttempts === 0 ? "Don't know?" : "Skip"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
-      <div className="sticky bottom-0 justify-between flex w-full  border-t bg-background p-4">
-        <Button onClick={handleSubmitScore} hidden={submitted} size="lg">
-          Submit test
-        </Button>
-        <Button
-          onClick={scrollToNextUnanswered}
-          hidden={submitted}
-          variant="outline"
-          size="lg"
-        >
-          Next unanswered question
-        </Button>
-      </div>
+      <Button
+        className="fixed left-1/2 top-0"
+        onClick={() => {
+          const obj = questions.reduce((acc: any, item: any) => {
+            acc[item.id] = 2; // set value 2 for each id
+            return acc;
+          }, {});
+          setIsRoundTwo(true);
+
+          setKnownAnswer(obj);
+          nextQuestion();
+        }}
+      >
+        Skip to round 2
+      </Button>
     </div>
   );
-}
+};
+
+export default PracticeQuizUI;

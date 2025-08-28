@@ -45,8 +45,8 @@ export interface QuizletViewProps {
 }
 
 export interface CardProps {
-  front: string;
-  back: string;
+  front: string | null;
+  back: string | null;
   hueA?: number;
   hueB?: number;
   i: number;

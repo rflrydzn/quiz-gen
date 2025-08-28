@@ -392,7 +392,7 @@ export default function FlashcardUI({
                 }));
                 nextCard();
               }}
-              hint={questions[currentIndex].hint}
+              hint={questions[currentIndex]?.hint}
             />
           </div>
         </div>
