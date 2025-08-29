@@ -18,9 +18,9 @@ const allowedTypesByStyle: Record<string, string[]> = {
   ],
   "Practice Mode": [
     "Multiple Choice",
-    "True/False",
-    "Open-Ended",
-    "Fill in the Blank",
+    // "True/False",
+    // "Open-Ended",
+    // "Fill in the Blank",
   ], // same as Exam
 };
 

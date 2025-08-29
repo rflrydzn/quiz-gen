@@ -37,10 +37,10 @@ export interface QuizletViewProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
   progressMode: boolean;
-  onRetake: any;
-  onRestart?: any;
-  onShuffle: any;
-  onBack: any;
+  onRetake: () => void;
+  onRestart?: () => void;
+  onShuffle: () => void;
+  onBack: () => void;
   totalQuestions: number;
 }
 
@@ -56,10 +56,10 @@ export interface CardProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
   questions: question[];
-  onRetake: any;
+  onRetake: () => void;
   totalQuestions: number;
-  onRestart: any;
-  onBack: any;
+  onRestart: () => void;
+  onBack: () => void;
 }
 
 export type PracticeQuizUIProps = {
@@ -73,4 +73,20 @@ export type PracticeModeSummaryProps = {
   onHandleReset: () => void;
   percentageScore: number;
   summaryKnownCount: number;
+};
+
+export type ExamQuestion = {
+  question: string;
+  type: string;
+  choices: string[];
+  answer: string;
+};
+
+export type PracticeQuestion = {
+  question: string;
+  hint: string;
+  type: string;
+  choices: string[];
+  answer: string;
+  explanation: string;
 };

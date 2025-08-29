@@ -22,9 +22,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Toaster, toast } from "sonner";
-
+import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { ExamQuestion, PracticeQuestion } from "@/types/types";
 
 interface Question {
   id: string;
@@ -42,7 +43,7 @@ const PracticeModeCreator = () => {
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Practice Set");
   // const [description, setDescription] = useState("");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -100,7 +101,11 @@ const PracticeModeCreator = () => {
     setQuestions(newQuestions);
   };
 
-  const updateQuestion = (id: string, field: keyof Question, value: any) => {
+  const updateQuestion = (
+    id: string,
+    field: keyof Question,
+    value: string | string[] | number
+  ) => {
     setQuestions((prev) =>
       prev.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
@@ -277,18 +282,20 @@ const PracticeModeCreator = () => {
     console.log("Quiz saved successfully:", quiz);
 
     // 3. Format and save questions using quiz.id
-    const formattedQuestions = practiceSet.questions.map((q: any) => ({
-      quiz_id: quiz.id, // use Supabase quiz ID, not q.id
-      type: q.type,
-      question: q.question ?? null,
-      difficulty: null,
-      choices: q.choices,
-      answer: q.answer,
-      hint: q.hint ?? null,
-      explanation: q.explanation ?? null,
-      front: null,
-      back: null,
-    }));
+    const formattedQuestions = practiceSet.questions.map(
+      (q: PracticeQuestion) => ({
+        quiz_id: quiz.id, // use Supabase quiz ID, not q.id
+        type: q.type,
+        question: q.question ?? null,
+        difficulty: null,
+        choices: q.choices,
+        answer: q.answer,
+        hint: q.hint ?? null,
+        explanation: q.explanation ?? null,
+        front: null,
+        back: null,
+      })
+    );
 
     console.log("Formatted questions:", formattedQuestions);
 

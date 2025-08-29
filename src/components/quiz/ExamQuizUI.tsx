@@ -282,7 +282,6 @@ export default function ExamQuizUI({
     }
 
     window.location.reload();
-    setIsLoading(false);
   };
 
   const scrollToNextUnanswered = () => {
@@ -313,10 +312,12 @@ export default function ExamQuizUI({
     // Save initial timer state to localStorage
     saveTimerState(timeLeft, now);
 
-    setIsLoading(false);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
   };
 
-  const getAIGradedScore = async (q: any) => {
+  const getAIGradedScore = async (q: question) => {
     const res = await fetch("/api/grade-answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -450,7 +451,7 @@ export default function ExamQuizUI({
           </div>
         )}
 
-        {questions.map((q: any, index: number) => (
+        {questions.map((q: question, index: number) => (
           <div key={q.id} className="p-4 mb-6">
             <p className="font-semibold mb-3">
               {index + 1}. {q.question}
@@ -459,7 +460,7 @@ export default function ExamQuizUI({
             {/* Multiple Choice */}
             {q.type === "Multiple Choice" && q.choices.length > 0 && (
               <RadioGroup
-                disabled={isTaken}
+                disabled={isTaken || !hasStarted}
                 value={userAnswers[q.id] || ""}
                 onValueChange={(value) =>
                   setUserAnswers((prev) => ({
@@ -490,7 +491,7 @@ export default function ExamQuizUI({
             {/* True / False */}
             {q.type === "True/False" && (
               <RadioGroup
-                disabled={isTaken}
+                disabled={!hasStarted || isTaken}
                 value={userAnswers[q.id] || ""}
                 onValueChange={(value) =>
                   setUserAnswers((prev) => ({
@@ -533,7 +534,7 @@ export default function ExamQuizUI({
             {q.type === "Fill in the Blank" && (
               <div className="mt-3">
                 <Textarea
-                  disabled={isTaken}
+                  disabled={isTaken || !hasStarted}
                   placeholder="Enter your answer..."
                   value={userAnswers[q.id] || ""}
                   onChange={(e) =>
@@ -570,7 +571,7 @@ export default function ExamQuizUI({
             {q.type === "Open-Ended" && (
               <div className="mt-3 relative">
                 <Textarea
-                  disabled={isTaken}
+                  disabled={isTaken || !hasStarted}
                   placeholder="Write your detailed answer..."
                   value={userAnswers[q.id] || ""}
                   onChange={(e) =>

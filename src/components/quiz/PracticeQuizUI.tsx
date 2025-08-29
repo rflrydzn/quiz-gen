@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import PracticeModeSummary from "@/app/quiz/dev/PracticeModeSummary";
 import { question } from "@/types/types";
-const PracticeQuizUI = ({ questions }: any) => {
+const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
@@ -48,7 +48,7 @@ const PracticeQuizUI = ({ questions }: any) => {
     return knownAnswer.hasOwnProperty(questionId);
   };
 
-  const shuffleArray = (array: any[]) => {
+  const shuffleArray = (array: question[]): question[] => {
     // Fisher-Yates shuffle
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {

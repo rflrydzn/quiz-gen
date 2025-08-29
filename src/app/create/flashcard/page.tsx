@@ -9,6 +9,7 @@ import { GripVertical, X, Plus, Save, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 type Card = {
   id: number;
@@ -20,7 +21,7 @@ type Card = {
 
 const FlashcardCreator = () => {
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Study Set");
   // const [description, setDescription] = useState("");
@@ -177,7 +178,7 @@ const FlashcardCreator = () => {
     console.log("Quiz saved successfully:", quiz);
 
     // 3. Format and save questions using quiz.id
-    const formattedQuestions = studySet.cards.map((q: any) => ({
+    const formattedQuestions = studySet.cards.map((q: Card) => ({
       quiz_id: quiz.id, // use Supabase quiz ID, not q.id
       type: "Flashcard",
       question: null,

@@ -15,10 +15,10 @@ interface SummaryProps {
   unknownQuestions: { [questionId: string]: string };
   knownQuestions: { [questionId: string]: string };
   questions: question[];
-  onRetake: any;
-  onRestart: any;
+  onRetake: () => void;
+  onRestart: () => void;
   totalQuestions: number;
-  onBack: any;
+  onBack: () => void;
 }
 
 const Summary: React.FC<SummaryProps> = ({

@@ -4,7 +4,7 @@ import {
   FileText,
   PlusCircle,
   Bookmark,
-  User,
+  UserIcon,
   HelpCircle,
   Archive,
 } from "lucide-react";
@@ -26,6 +26,7 @@ import { NavUser } from "./nav-user";
 import { createClient } from "@/utils/supabase/client";
 import { signout } from "@/lib/auth-actions";
 import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
@@ -67,7 +68,7 @@ const comingSoonItems = [
   {
     title: "Profile",
     url: "/coming-soon",
-    icon: User,
+    icon: UserIcon,
   },
   {
     title: "Help / Feedback",
@@ -77,7 +78,7 @@ const comingSoonItems = [
 ];
 
 export function AppSidebar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -90,9 +91,9 @@ export function AppSidebar() {
   }, []);
 
   const userData = {
-    name: user?.user_metadata?.full_name,
-    email: user?.email,
-    avatar: user?.user_metadata.avatar_url,
+    name: user?.user_metadata?.full_name ?? "Unknown",
+    email: user?.email ?? "unknown@example.com",
+    avatar: user?.user_metadata?.avatar_url ?? "/default-avatar.png",
   };
 
   return (

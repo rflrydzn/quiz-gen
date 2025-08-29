@@ -25,6 +25,8 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { User } from "@supabase/supabase-js";
+import { ExamQuestion } from "@/types/types";
 interface Question {
   id: string;
   question: string;
@@ -39,7 +41,7 @@ const ExamStyleCreator = () => {
   const router = useRouter();
   const [title, setTitle] = useState("Untitled Exam");
   // const [description, setDescription] = useState("");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -91,7 +93,11 @@ const ExamStyleCreator = () => {
     setQuestions(newQuestions);
   };
 
-  const updateQuestion = (id: string, field: keyof Question, value: any) => {
+  const updateQuestion = (
+    id: string,
+    field: keyof Question,
+    value: string | string[] | number
+  ) => {
     setQuestions((prev) =>
       prev.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
@@ -262,7 +268,7 @@ const ExamStyleCreator = () => {
     console.log("Quiz saved successfully:", quiz);
 
     // Format and save questions using quiz.id
-    const formattedQuestions = examSet.questions.map((q: any) => ({
+    const formattedQuestions = examSet.questions.map((q: ExamQuestion) => ({
       quiz_id: quiz.id,
       type: q.type,
       question: q.question ?? null,

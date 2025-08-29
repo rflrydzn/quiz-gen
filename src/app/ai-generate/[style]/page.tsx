@@ -13,6 +13,8 @@ import { TabsDemo } from "@/components/ContextTabs";
 import { Loader2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { User } from "@supabase/supabase-js";
+import { question } from "@/types/types";
 type QuizOptions = {
   questionCounts: number;
   quizStyle?: string;
@@ -28,7 +30,7 @@ const QuizSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const params = useParams<{ style: string }>();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
     title: "",
     questionCounts: 5,
@@ -120,7 +122,7 @@ const QuizSettings = () => {
       console.log("Quiz saved successfully:", quiz);
 
       // 3. Format and save questions using quiz.id
-      const formattedQuestions = data.map((q: any) => ({
+      const formattedQuestions = data.map((q: question) => ({
         quiz_id: quiz.id, // use Supabase quiz ID, not q.id
         type: q.type,
         question: q.question ?? null,

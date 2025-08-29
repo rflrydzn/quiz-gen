@@ -11,6 +11,8 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { TabsDemo } from "@/components/ContextTabs";
 import { Loader2Icon } from "lucide-react";
+import { User } from "@supabase/supabase-js";
+import { question } from "@/types/types";
 
 type QuizOptions = {
   questionCounts: number;
@@ -25,7 +27,7 @@ type QuizOptions = {
 const QuizSettings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
     questionCounts: 5,
     quizStyle: "Practice Mode",
@@ -102,7 +104,7 @@ const QuizSettings = () => {
       console.log("Quiz saved successfully:", quiz);
 
       // 3. Format and save questions using quiz.id
-      const formattedQuestions = data.map((q: any) => ({
+      const formattedQuestions = data.map((q: question) => ({
         quiz_id: quiz.id, // use Supabase quiz ID, not q.id
         type: q.type,
         question: q.question ?? null,

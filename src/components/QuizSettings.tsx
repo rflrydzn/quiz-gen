@@ -8,6 +8,8 @@ import QuizStyle from "./QuizStyle";
 import QuizLanguage from "./QuizLanguage";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { question } from "@/types/types";
 
 type QuizOptions = {
   questionCounts: number;
@@ -18,8 +20,12 @@ type QuizOptions = {
   textContent: string;
   distribution: { type: string; count: number }[];
 };
-const QuizSettings = ({ onGenerate }: { onGenerate: (data: any) => void }) => {
-  const [user, setUser] = useState<any>(null);
+const QuizSettings = ({
+  onGenerate,
+}: {
+  onGenerate: (data: string) => void;
+}) => {
+  const [user, setUser] = useState<User | null>(null);
   const [quizoptions, setQuizOptions] = useState<QuizOptions>({
     questionCounts: 5,
     quizStyle: "",
@@ -90,7 +96,7 @@ const QuizSettings = ({ onGenerate }: { onGenerate: (data: any) => void }) => {
     onGenerate(quiz.id);
 
     // 3. Format and save questions using quiz.id
-    const formattedQuestions = data.map((q: any) => ({
+    const formattedQuestions = data.map((q: question) => ({
       quiz_id: quiz.id, // use Supabase quiz ID, not q.id
       type: q.type,
       question: q.question ?? null,

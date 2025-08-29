@@ -65,7 +65,7 @@ Difficulty should be ${difficulty.toLowerCase()}.
 Return only the questions and answers in JSON format.`;
 
     // Define dynamic schema
-    let schemaProperties: any = {};
+    let schemaProperties = {};
     let propertyOrdering: string[] = [];
 
     if (quizStyle === "Flashcard") {
