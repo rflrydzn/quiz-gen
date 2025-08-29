@@ -16,8 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Your App",
-  description: "Your app description",
+  title: "QuizMaster",
+  description:
+    " Create quizzes from your notes, PDFs, or text. Choose flashcards, practice mode, or exam-style quizzes — all generated instantly to help you study smarter",
 };
 
 export default async function RootLayout({
