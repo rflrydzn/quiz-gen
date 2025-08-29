@@ -38,7 +38,7 @@ export interface QuizletViewProps {
   knownQuestions: { [questionId: string]: string };
   progressMode: boolean;
   onRetake: () => void;
-  onRestart?: () => void;
+  onRestart: () => void;
   onShuffle: () => void;
   onBack: () => void;
   totalQuestions: number;
