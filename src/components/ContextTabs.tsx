@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "./ui/textarea";
+import { createClient } from "@/utils/supabase/client";
 
 type Props = {
   value: string;
@@ -11,17 +12,41 @@ type Props = {
 };
 
 export function TabsDemo({ value, onChange, onUpload }: Props) {
+  const supabase = createClient();
   const [text, setText] = useState("");
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null); // <-- new state
 
   const maxChars = 10000;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const user = (await supabase.auth.getUser()).data.user;
     const file = e.target.files?.[0];
-    if (file && onUpload) {
-      const url = URL.createObjectURL(file); // temporary preview URL
-      onUpload(url);
+
+    if (file && onUpload && user) {
+      // keep path consistent
+      const filepath = `${user.id}/${Date.now()}-${file.name}`;
+
+      // Upload file
+      const { data, error } = await supabase.storage
+        .from("uploads")
+        .upload(filepath, file);
+
+      if (error) {
+        console.error("Error uploading file", error);
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("uploads")
+        .getPublicUrl(filepath);
+
+      if (urlData?.publicUrl) {
+        onUpload(urlData.publicUrl);
+        setUploadedFileName(file.name);
+      }
     }
   };
 
@@ -105,18 +130,26 @@ and remnants from its formation about 4.6 billion years ago.`;
             onClick={() => fileInputRef.current?.click()}
           >
             <UploadCloudIcon className="w-8 h-8 mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Drag & drop your file here, or click to browse
-            </p>
-            <Button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                fileInputRef.current?.click();
-              }}
-            >
-              Choose File
-            </Button>
+            {!uploadedFileName ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Drag & drop your file here, or click to browse
+                </p>
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  Choose File
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm font-medium text-primary">
+                {uploadedFileName}
+              </p>
+            )}
             <input
               type="file"
               ref={fileInputRef}
