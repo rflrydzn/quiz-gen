@@ -152,8 +152,17 @@ const FlashcardCreator = () => {
     const savedSets = JSON.parse(localStorage.getItem("studySets") || "[]");
     savedSets.push(studySet);
     localStorage.setItem("studySets", JSON.stringify(savedSets));
-
-    alert(`Study set "${title}" saved with ${studySet.cards.length} cards!`);
+    toast.success(
+      `Study set "${title}" saved with ${studySet.cards.length} cards!`,
+      {
+        position: "bottom-right",
+        style: {
+          background: "#7bf1a8", // nice yellow
+          color: "#000000", // black text for readability
+        },
+      }
+    );
+    // alert(`Study set "${title}" saved with ${studySet.cards.length} cards!`);
 
     // 2. Save quiz metadata in Supabase
     const { data: quiz, error: quizError } = await supabase

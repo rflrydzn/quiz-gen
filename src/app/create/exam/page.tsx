@@ -243,7 +243,17 @@ const ExamStyleCreator = () => {
     savedSets.push(examSet);
     localStorage.setItem("examSets", JSON.stringify(savedSets));
 
-    alert(`Exam "${title}" created with ${validQuestions.length} questions!`);
+    toast.success(
+      `Exam "${title}" created with ${validQuestions.length} questions!`,
+      {
+        position: "bottom-right",
+        style: {
+          background: "#7bf1a8", // nice yellow
+          color: "#000000", // black text for readability
+        },
+      }
+    );
+    // alert(`Exam "${title}" created with ${validQuestions.length} questions!`);
 
     // Save quiz metadata in Supabase
     const { data: quiz, error: quizError } = await supabase
