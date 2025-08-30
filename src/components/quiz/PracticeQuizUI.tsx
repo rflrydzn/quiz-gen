@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Check } from "lucide-react";
+import { X, Check, Search, Star, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,14 @@ import { Label } from "@/components/ui/label";
 import PracticeModeSummary from "@/app/quiz/dev/PracticeModeSummary";
 import { question } from "@/types/types";
 import { AuroraBackground } from "../ui/shadcn-io/aurora-background";
-const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
+
+const PracticeQuizUI = ({
+  questions,
+  title,
+}: {
+  questions: question[];
+  title: string;
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
@@ -114,6 +121,7 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
     setTimeout(() => setWaitingForNext(true), 100);
     nextQuestionToaster();
   };
+
   const resetQuestionState = () => {
     setUserAnswer("");
     setRetryAttempts(0);
@@ -171,6 +179,27 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
     setCurrentIndex(0);
     toast.dismiss();
   };
+
+  // Helper function to get the correct label text for MCQ
+  const getMCQLabel = () => {
+    if (isSkipped) {
+      return "Give this one a try later";
+    }
+    if (userAnswer === correctAnswer && retryAttempts === 0) {
+      return "Good job!";
+    }
+    if (userAnswer === correctAnswer && retryAttempts >= 1) {
+      return "You're getting it! You'll see this again later.";
+    }
+    if (retryAttempts >= 2) {
+      return "Let's keep practicing! You'll see this again later.";
+    }
+    if (retryAttempts === 1) {
+      return "Let's try again";
+    }
+    return "Select an option";
+  };
+
   // Check answer when user selects
   useEffect(() => firstInputRef.current?.focus(), [currentIndex]);
   useEffect(() => console.log("known", knownAnswer));
@@ -251,10 +280,50 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
     );
   return (
     <>
-      <div>
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
-          {}
-        </h1>
+      <div className="bg-white  border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 truncate">
+              {title}
+            </h1>
+
+            <div className="hidden md:block flex-1 max-w-md mx-8">
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <Input
+                  placeholder="Search practice sets"
+                  className="pl-10 h-12 bg-gray-50 border-gray-200 focus:bg-white transition-colors w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <Star className="w-5 h-5 text-gray-600" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <Share2 className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile search */}
+          <div className="md:hidden pb-4">
+            <div className="relative">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <Input
+                placeholder="Search flashcards"
+                className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors w-full"
+              />
+            </div>
+          </div>
+        </div>
       </div>
       <div className="min-h-screen flex flex-col items-center justify-start px-4 py-6">
         <div className=" flex flex-col gap-5 w-full max-w-4xl mt-16">
@@ -506,25 +575,11 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
-                    {/* <Label className="mb-2">
-                      {isSkipped && retryAttempts === 1
-                        ? "No sweat, you're still learning!"
-                        : isCorrect && retryAttempts === 0
-                        ? "Good job"
-                        : isCorrect && retryAttempts === 1
-                        ? "You're getting it! You'll see this again later."
-                        : retryAttempts >= 2
-                        ? "You will see this again later"
-                        : isSkipped
-                        ? "Give this one a try later"
-                        : retryAttempts === 1
-                        ? "Let's try again"
-                        : "Select an option"}
-                    </Label> */}
+                    <Label className="mb-2">{getMCQLabel()}</Label>
                     <ToggleGroup
                       type="single"
                       value={userAnswer}
-                      className="grid grid-cols-1  gap-3"
+                      className="grid grid-cols-1  gap-3 "
                     >
                       {currentQuestion.choices.map(
                         (choice: string, index: number) => (
@@ -536,7 +591,7 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
                             onClick={() => setUserAnswer(choice)}
                             className={
                               renderChoices(choice) +
-                              " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
+                              " scroll-m-20 text-xl font-semibold tracking-tight p-6 data-[state=on]:bg-transparent data-[state=on]:text-foreground"
                             }
                           >
                             {choice}
@@ -560,21 +615,6 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
             </motion.div>
           </AnimatePresence>
         </div>
-        {/* <Button
-        className="fixed left-1/2 top-0"
-        onClick={() => {
-          const obj = questions.reduce((acc: any, item: any) => {
-            acc[item.id] = 2; // set value 2 for each id
-            return acc;
-          }, {});
-          setIsRoundTwo(true);
-
-          setKnownAnswer(obj);
-          nextQuestion();
-        }}
-      >
-        Skip to round 2
-      </Button> */}
       </div>
     </>
   );

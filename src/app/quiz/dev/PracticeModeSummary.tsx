@@ -20,7 +20,17 @@ const PracticeModeSummary = ({
   const masteredCount = Object.values(knownAnswer).filter(
     (v) => v === 2
   ).length;
-  const remainingCount = Object.values(knownAnswer).length - masteredCount;
+  const remainingCount =
+    Object.values(knownAnswer).length -
+    masteredCount +
+    questions.length -
+    Object.keys(knownAnswer).length;
+  const missing = questions.filter((q) => !(q.id in knownAnswer));
+  useEffect(
+    () => console.log("missing", missing),
+    [knownAnswer, missing, questions]
+  );
+
   const handleResetToaster = () => {
     toast(
       <div className="flex justify-center items-center">
@@ -174,33 +184,34 @@ const PracticeModeSummary = ({
               ))}
           </div>
         )}
-
-        {questions
-          .filter((q) => !(q.id in knownAnswer))
-          .map((question) => (
-            <div className="space-y-2" key={question.id}>
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Needs Review:
-              </h4>
-
+        {(Object.values(knownAnswer).includes(0) || missing.length > 0) && (
+          <div className="space-y-2">
+            <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+              Needs Review:
+            </h4>
+            {[
+              ...questions.filter((q) => knownAnswer[q.id] === 0),
+              ...missing,
+            ].map((q) => (
               <div
-                className="w-full  flex border rounded-lg p-4  bg-background"
-                key={question.id}
+                className="w-full flex border rounded-lg p-4 bg-background"
+                key={q.id}
               >
                 <div className="w-1/4 p-3">
                   <p className="leading-7 [&:not(:first-child)]:mt-6">
-                    {question.answer}
+                    {q.answer}
                   </p>
                 </div>
                 <Separator orientation="vertical" />
                 <div className="w-3/4 p-3">
                   <p className="leading-7 [&:not(:first-child)]:mt-6">
-                    {question.question}
+                    {q.question}
                   </p>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

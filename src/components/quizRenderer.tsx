@@ -42,7 +42,7 @@ export default function QuizRenderer({ quizId }: { quizId: string }) {
     case "Flashcard":
       return <FlashcardUI quiz={quiz} questions={questions} />;
     case "Practice Mode":
-      return <PracticeQuizUI questions={questions} />;
+      return <PracticeQuizUI questions={questions} title={quiz.title} />;
     default:
       return <p>Unknown quiz style</p>;
   }
