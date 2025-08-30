@@ -36,7 +36,7 @@ const QuizSettings = () => {
     questionCounts: 5,
     quizStyle: "",
     questionTypes: [],
-    difficulty: "medium",
+    difficulty: "Medium",
     fileUrl: "",
     textContent: "",
     distribution: [{ type: "Multiple Choice", count: 10 }],
@@ -161,7 +161,7 @@ const QuizSettings = () => {
     } finally {
       // This ensures isLoading is always set back to false
       console.log("Setting isLoading back to false");
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
   useEffect(() => {
@@ -188,8 +188,8 @@ const QuizSettings = () => {
   }, [isLoading]);
 
   return (
-    <div className=" flex flex-col gap-7 w-full max-w-5xl mx-auto">
-      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+    <div className=" flex flex-col gap-7 w-full max-w-full p-10 mx-auto lg:max-w-3xl md:max-w-xl m-auto h-full xl:max-w-6xl">
+      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance mt-6">
         Generate {quizoptions.quizStyle}
       </h1>
       <TabsDemo
@@ -258,12 +258,17 @@ const QuizSettings = () => {
 
         <QuizLanguage />
       </div>
-      <div className="flex justify-between py-10">
+      <div className="flex flex-col lg:flex-row justify-between py-10 space-y-5">
         <p className="leading-7 [&:not(:first-child)]:mt-6 max-w-2xl">
           This product is enhanced by AI and may provide incorrect or
           problematic content. Do not enter personal data.
         </p>
-        <Button onClick={handleClick} size="lg" disabled={isLoading}>
+        <Button
+          onClick={handleClick}
+          size="lg"
+          disabled={isLoading}
+          className=""
+        >
           {isLoading ? (
             <>
               <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />

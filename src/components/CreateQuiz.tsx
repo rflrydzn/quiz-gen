@@ -17,7 +17,7 @@ import PracticeModeIcon from "@/../public/practice.svg";
 import AIicon from "@/../public/ai.svg";
 import ManualIcon from "@/../public/manual.svg";
 import { Card, CardTitle } from "./ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -62,7 +62,10 @@ const CreateQuiz = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default">Create Quiz</Button>
+        <Button variant="default">
+          <Plus />
+          New Quiz
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">

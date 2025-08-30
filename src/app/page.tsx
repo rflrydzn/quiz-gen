@@ -11,6 +11,7 @@ import { Trash } from "lucide-react";
 import CreateQuiz from "@/components/CreateQuiz";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { AuroraBackground } from "@/components/ui/shadcn-io/aurora-background";
 
 type Quiz = {
   id: string;
@@ -81,7 +82,7 @@ export default function MyQuizzes() {
 
   if (quizzes?.length === 0)
     return (
-      <div className="flex flex-col items-center justify-center gap-3 h-screen">
+      <div className="flex flex-col items-center justify-center gap-3 h-screen ">
         <Image
           src={EmptyQuizGraphic}
           alt="Empty quiz"
@@ -98,30 +99,34 @@ export default function MyQuizzes() {
   if (error) return <p className="text-red-600">{(error as Error).message}</p>;
 
   return (
-    <div className="my-16 mx-36">
+    // <AuroraBackground showRadialGradient={false}>
+    <div className="py-16 px-12 max-w-4xl mx-auto h-screen overflow-hidden">
       <div className="justify-between flex ">
-        <h1 className="text-2xl font-bold mb-4">My Quizzes</h1>
+        <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
+          Your Quizzes
+        </h1>
         <CreateQuiz />
       </div>
-      <div className="relative flex items-center justify-center mb-6">
+
+      <div className="relative flex items-center justify-center mb-6 mt-6">
         <Search
           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
           size={18}
         />
         <Input
           placeholder="Search quizzes..."
-          className="pl-10 h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+          className="pl-10 h-12 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-auto h-screen ">
         {filterSearch.length > 0 ? (
           filterSearch.map((quiz) => (
             <div
               key={quiz.id}
-              className="group relative border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+              className="group relative border bg-white/50 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
               onClick={() => router.push(`/quiz/${quiz.id}`)}
             >
               {/* Delete button with tooltip */}
@@ -130,7 +135,7 @@ export default function MyQuizzes() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 hover:bg-gray-200 hover:text-red-600 transition-colors rounded-md"
+                    className="h-8 w-8 text-muted-foreground hover:bg-gray-200  transition-colors rounded-md"
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteQuiz.mutate(quiz.id);
@@ -158,7 +163,7 @@ export default function MyQuizzes() {
                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
                   <span className="flex items-center gap-1">
                     <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                    Style: {quiz.style}
+                    {quiz.style}
                   </span>
                   <span className="flex items-center gap-1">
                     <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
@@ -168,17 +173,17 @@ export default function MyQuizzes() {
 
                 {/* Status and date */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        quiz.status === "taken"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {quiz.status === "taken" ? "✓ Completed" : "○ Pending"}
-                    </span>
-                  </div>
+                  {/* <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          quiz.status === "taken"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {quiz.status === "taken" ? "✓ Completed" : "○ Pending"}
+                      </span>
+                    </div> */}
                   <p className="text-xs text-gray-500">
                     {new Date(quiz.created_at).toLocaleDateString("en-US", {
                       month: "short",
@@ -205,5 +210,6 @@ export default function MyQuizzes() {
         )}
       </div>
     </div>
+    // </AuroraBackground>
   );
 }

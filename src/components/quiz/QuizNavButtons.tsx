@@ -51,14 +51,6 @@ export default function QuizNavButtons({
 }: QuizletControlsProps) {
   return (
     <div className="flex flex-col w-full gap-4">
-      {/* Top: Progress Bar */}
-
-      {isVerticalLayout && (
-        <div className="w-full text-center">
-          <Progress value={((currentIndex + 1) / roundQuestionLength) * 100} />
-        </div>
-      )}
-
       {/* Nav Buttons */}
       <div className="relative w-full max-w-2xl mx-auto flex items-center">
         {/* Left: Progress Mode */}
@@ -81,16 +73,12 @@ export default function QuizNavButtons({
                   <p>Mark as known</p>
                 </TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button disabled>
-                    <Plus />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add a Card: Coming soon</p>
-                </TooltipContent>
-              </Tooltip>
+
+              {/* Replace Add Card with index */}
+              <span className="flex items-center justify-center text-sm font-medium text-gray-600">
+                {currentIndex + 1}/{roundQuestionLength}
+              </span>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button onClick={onUnknown}>
@@ -114,16 +102,12 @@ export default function QuizNavButtons({
                   <p>Previous</p>
                 </TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button disabled>
-                    <Plus />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add a Card: Coming soon</p>
-                </TooltipContent>
-              </Tooltip>
+
+              {/* Replace Add Card with index */}
+              <span className="flex items-center justify-center text-sm font-medium text-gray-600">
+                {currentIndex + 1}/{totalQuestions}
+              </span>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -182,6 +166,12 @@ export default function QuizNavButtons({
             </TooltipContent>
           </Tooltip>
         </div>
+      </div>
+
+      {/* Progress Bar below Nav */}
+      {/* Progress Bar below Nav */}
+      <div className="w-full max-w-2xl mx-auto text-center">
+        <Progress value={((currentIndex + 1) / totalQuestions) * 100} />
       </div>
     </div>
   );

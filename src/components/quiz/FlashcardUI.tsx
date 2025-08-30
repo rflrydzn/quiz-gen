@@ -263,7 +263,7 @@ export default function FlashcardUI({
 
   return (
     <>
-      {!showSummary && (
+      {/* {!showSummary && (
         <div className="fixed right-0 m-4 flex items-center gap-2 z-10">
           <Label htmlFor="flashcard-layout">
             {verticalLayout ? "Vertical" : "Horizontal"}
@@ -274,7 +274,7 @@ export default function FlashcardUI({
             onCheckedChange={() => setVerticalLayout(!verticalLayout)}
           />
         </div>
-      )}
+      )} */}
 
       {verticalLayout ? (
         <div className="relative mx-auto my-24 max-w-lg w-full pb-24">
@@ -299,6 +299,7 @@ export default function FlashcardUI({
         </div>
       ) : (
         <QuizletView
+          title={quiz.title}
           totalQuestions={totalQuestions}
           questions={questionsForRound}
           currentIndex={currentIndex}

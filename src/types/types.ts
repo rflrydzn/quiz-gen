@@ -1,4 +1,5 @@
 export type quiz = {
+  title: string;
   id: string;
   user_id: string;
   created_at: string;
@@ -26,6 +27,7 @@ export type question = {
 };
 
 export interface QuizletViewProps {
+  title: string;
   questions: question[];
   currentIndex: number;
   nextCard: () => void;
@@ -89,4 +91,16 @@ export type PracticeQuestion = {
   choices: string[];
   answer: string;
   explanation: string;
+};
+
+export type Material = {
+  id: number;
+  title: string;
+  type: string;
+  author: string;
+  readTime: string;
+  excerpt: string;
+  url: string;
+  thumbnail: string;
+  tags: string[];
 };

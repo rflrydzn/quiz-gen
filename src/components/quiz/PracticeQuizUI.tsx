@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import PracticeModeSummary from "@/app/quiz/dev/PracticeModeSummary";
 import { question } from "@/types/types";
+import { AuroraBackground } from "../ui/shadcn-io/aurora-background";
 const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
@@ -249,227 +250,301 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
       />
     );
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start px-4 py-6">
-      <div className=" flex flex-col gap-5 w-full max-w-4xl mt-16">
-        <div className="w-full flex items-center justify-center">
-          {/* Progress bar */}
-          <div className="relative w-full">
-            <Progress value={percentageScore} className="h-4" />
+    <>
+      {/* <AuroraBackground> */}
+      <div>
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+          {}
+        </h1>
+      </div>
+      <div className="min-h-screen flex flex-col items-center justify-start px-4 py-6">
+        <div className=" flex flex-col gap-5 w-full max-w-4xl mt-16">
+          <div className="w-full flex items-center justify-center">
+            {/* Progress bar */}
+            <div className="relative w-full">
+              <Progress value={percentageScore} className="h-4" />
 
-            {/* Circle count at the end of the progress */}
-            <div
-              className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
-              style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
-            >
-              {summaryKnownCount}
+              {/* Circle count at the end of the progress */}
+              <div
+                className="absolute -top-2  flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-bold shadow-md transition-all"
+                style={{ left: `calc(${percentageScore}% - 16px)` }} // -16px centers the circle
+              >
+                {summaryKnownCount}
+              </div>
+            </div>
+
+            <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
+              {questions.length * 2}
             </div>
           </div>
+          {/* main */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex} // important: triggers animation when index changes
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="text-xl font-semibold"
+            >
+              <h3 className="text-center scroll-m-20 text-2xl font-semibold tracking-tight my-5">
+                {currentQuestion.question}
+              </h3>
 
-          <div className="rounded-full bg-black text-white h-8 w-8 items-center justify-center flex ml-2">
-            {questions.length * 2}
-          </div>
-        </div>
-        {/* main */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex} // important: triggers animation when index changes
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.3 }}
-            className="text-xl font-semibold"
-          >
-            <h3 className="text-center scroll-m-20 text-2xl font-semibold tracking-tight my-5">
-              {currentQuestion.question}
-            </h3>
+              <div className="flex flex-col gap-3">
+                {currentQuestionInterface === "input" ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="">
+                      <Label className="mb-2">
+                        {isSkipped && retryAttempts === 1
+                          ? "No sweat, you're still learning!"
+                          : isCorrect && retryAttempts === 0
+                          ? "Good job"
+                          : isCorrect && retryAttempts === 1
+                          ? "You're getting it! You'll see this again later."
+                          : retryAttempts === 2 && !isCorrect
+                          ? "Let's keep practicing! You'll see this again later."
+                          : retryAttempts >= 2
+                          ? "You will see this again later"
+                          : isSkipped
+                          ? "Give this one a try later"
+                          : retryAttempts === 1 &&
+                            isOpenEnded(currentQuestion.id)
+                          ? "Previous answer"
+                          : retryAttempts === 1
+                          ? "Let's try again"
+                          : isOpenEnded(currentQuestion.id)
+                          ? "Your Answer"
+                          : "Choose an option"}
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          onChange={(e) => setFirstInput(e.target.value)}
+                          value={firstInput}
+                          disabled={retryAttempts !== 0 || isSkipped}
+                          className={
+                            isCorrect && retryAttempts === 1
+                              ? "hidden"
+                              : retryAttempts !== 0
+                              ? "border-red-300 h-12"
+                              : isCorrect
+                              ? " border-green-300 h-12"
+                              : "h-12"
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSubmit();
+                          }}
+                          ref={firstInputRef}
+                          placeholder={isSkipped ? "Skipped" : ""}
+                        />
 
-            <div className="flex flex-col gap-3">
-              {currentQuestionInterface === "input" ? (
-                <div className="flex flex-col gap-3">
-                  <div className="">
-                    <Label className="mb-2">
+                        {/* ✅ ❌ animation for first input */}
+                        <AnimatePresence mode="wait">
+                          {isCorrect && retryAttempts === 0 && (
+                            <motion.div
+                              key="check"
+                              initial={{ opacity: 0, scale: 0 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                            >
+                              <Check size={20} />
+                            </motion.div>
+                          )}
+                          {((!isCorrect && retryAttempts !== 0) ||
+                            (isSkipped && retryAttempts === 0)) && (
+                            <motion.div
+                              key="x"
+                              initial={{ opacity: 0, scale: 0, rotate: -45 }}
+                              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                              exit={{ opacity: 0, scale: 0, rotate: 45 }}
+                              transition={{ duration: 0.25 }}
+                              className={`absolute right-2 top-1/2 -translate-y-1/2 ${
+                                isSkipped && retryAttempts === 0
+                                  ? " text-muted"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              <X size={20} />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                    {/* second */}
+                    <AnimatePresence initial={false}>
+                      {(retryAttempts !== 0 || isSkipped) && (
+                        <motion.div
+                          initial={{ x: -50, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          <Label
+                            className={
+                              retryAttempts === 0 && !isSkipped
+                                ? "hidden"
+                                : "inline mb-2"
+                            }
+                          >
+                            {retryAttempts === 2 || isSkipped
+                              ? "Correct Answer"
+                              : retryAttempts === 1 && !isCorrect
+                              ? "Let's try again"
+                              : ""}
+                          </Label>
+                          <div className="relative">
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={`input-state-${
+                                  isSkipped
+                                    ? "skipped"
+                                    : retryAttempts === 2
+                                    ? "failed"
+                                    : "active"
+                                }`}
+                                initial={
+                                  isSkipped || retryAttempts === 2
+                                    ? { y: -20, opacity: 0 } // Top-to-bottom when showing answer
+                                    : { opacity: 1 } // No animation for normal input
+                                }
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{
+                                  duration: 0.3,
+                                  ease: "easeOut",
+                                }}
+                              >
+                                <Input
+                                  className={
+                                    retryAttempts === 0 && !isSkipped
+                                      ? "hidden"
+                                      : `inline h-12 ${
+                                          isCorrect ||
+                                          isSkipped ||
+                                          retryAttempts === 2
+                                            ? "border-green-300"
+                                            : ""
+                                        }`
+                                  }
+                                  onChange={(e) =>
+                                    setSecondInput(e.target.value)
+                                  }
+                                  value={
+                                    isSkipped || retryAttempts === 2
+                                      ? correctAnswer
+                                      : secondInput ?? ""
+                                  }
+                                  disabled={retryAttempts !== 1}
+                                  ref={secondInputRef}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleSubmit();
+                                  }}
+                                />
+                              </motion.div>
+                            </AnimatePresence>
+
+                            {/* ✅ ❌ animation for second input */}
+                            <AnimatePresence mode="wait">
+                              {(isCorrect && retryAttempts === 1) ||
+                                isSkipped ||
+                                (retryAttempts === 2 && (
+                                  <motion.div
+                                    key="check-2"
+                                    initial={{ opacity: 0, scale: 0 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                                  >
+                                    <Check size={20} />
+                                  </motion.div>
+                                ))}
+                              {!isCorrect &&
+                                retryAttempts === 0 &&
+                                !isSkipped && (
+                                  <motion.div
+                                    key="x-2"
+                                    initial={{
+                                      opacity: 0,
+                                      scale: 0,
+                                      rotate: -45,
+                                    }}
+                                    animate={{
+                                      opacity: 1,
+                                      scale: 1,
+                                      rotate: 0,
+                                    }}
+                                    exit={{
+                                      opacity: 0,
+                                      scale: 0,
+                                      rotate: 45,
+                                    }}
+                                    transition={{ duration: 0.25 }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500"
+                                  >
+                                    <X size={20} />
+                                  </motion.div>
+                                )}
+                            </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <div className="self-end">
+                      <Button onClick={handleSubmit}>Submit</Button>
+                      <Button
+                        onClick={() => {
+                          setisSkipped(true);
+                          handleUnknown();
+                        }}
+                        variant="ghost"
+                        className="self-end"
+                      >
+                        {retryAttempts === 0 ? "Don't know?" : "Skip"}
+                      </Button>
+                    </div>
+                    {/* <Button onClick={getSummary}>GET summary</Button> */}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {/* <Label className="mb-2">
                       {isSkipped && retryAttempts === 1
                         ? "No sweat, you're still learning!"
                         : isCorrect && retryAttempts === 0
                         ? "Good job"
                         : isCorrect && retryAttempts === 1
                         ? "You're getting it! You'll see this again later."
-                        : retryAttempts === 2 && !isCorrect
-                        ? "Let's keep practicing! You'll see this again later."
                         : retryAttempts >= 2
                         ? "You will see this again later"
                         : isSkipped
                         ? "Give this one a try later"
-                        : retryAttempts === 1 && isOpenEnded(currentQuestion.id)
-                        ? "Previous answer"
                         : retryAttempts === 1
                         ? "Let's try again"
-                        : isOpenEnded(currentQuestion.id)
-                        ? "Your Answer"
-                        : "Choose an option"}
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        onChange={(e) => setFirstInput(e.target.value)}
-                        value={firstInput}
-                        disabled={retryAttempts !== 0 || isSkipped}
-                        className={
-                          isCorrect && retryAttempts === 1
-                            ? "hidden"
-                            : retryAttempts !== 0
-                            ? "border-red-300 h-12"
-                            : isCorrect
-                            ? " border-green-300 h-12"
-                            : "h-12"
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSubmit();
-                        }}
-                        ref={firstInputRef}
-                        placeholder={isSkipped ? "Skipped" : ""}
-                      />
-
-                      {/* ✅ ❌ animation for first input */}
-                      <AnimatePresence mode="wait">
-                        {isCorrect && retryAttempts === 0 && (
-                          <motion.div
-                            key="check"
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0 }}
-                            transition={{ duration: 0.25 }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
+                        : "Select an option"}
+                    </Label> */}
+                    <ToggleGroup
+                      type="single"
+                      value={userAnswer}
+                      className="grid grid-cols-1  gap-3"
+                    >
+                      {currentQuestion.choices.map(
+                        (choice: string, index: number) => (
+                          <ToggleGroupItem
+                            variant="outline"
+                            value={choice}
+                            aria-label={choice}
+                            key={index}
+                            onClick={() => setUserAnswer(choice)}
+                            className={
+                              renderChoices(choice) +
+                              " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
+                            }
                           >
-                            <Check size={20} />
-                          </motion.div>
-                        )}
-                        {((!isCorrect && retryAttempts !== 0) ||
-                          (isSkipped && retryAttempts === 0)) && (
-                          <motion.div
-                            key="x"
-                            initial={{ opacity: 0, scale: 0, rotate: -45 }}
-                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                            exit={{ opacity: 0, scale: 0, rotate: 45 }}
-                            transition={{ duration: 0.25 }}
-                            className={`absolute right-2 top-1/2 -translate-y-1/2 ${
-                              isSkipped && retryAttempts === 0
-                                ? " text-muted"
-                                : "text-red-500"
-                            }`}
-                          >
-                            <X size={20} />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                  {/* second */}
-                  <AnimatePresence initial={false}>
-                    {(retryAttempts !== 0 || isSkipped) && (
-                      <motion.div
-                        initial={{ x: -50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                      >
-                        <Label
-                          className={
-                            retryAttempts === 0 && !isSkipped
-                              ? "hidden"
-                              : "inline mb-2"
-                          }
-                        >
-                          {retryAttempts === 2 || isSkipped
-                            ? "Correct Answer"
-                            : retryAttempts === 1 && !isCorrect
-                            ? "Let's try again"
-                            : ""}
-                        </Label>
-                        <div className="relative">
-                          <AnimatePresence mode="wait">
-                            <motion.div
-                              key={`input-state-${
-                                isSkipped
-                                  ? "skipped"
-                                  : retryAttempts === 2
-                                  ? "failed"
-                                  : "active"
-                              }`}
-                              initial={
-                                isSkipped || retryAttempts === 2
-                                  ? { y: -20, opacity: 0 } // Top-to-bottom when showing answer
-                                  : { opacity: 1 } // No animation for normal input
-                              }
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ duration: 0.3, ease: "easeOut" }}
-                            >
-                              <Input
-                                className={
-                                  retryAttempts === 0 && !isSkipped
-                                    ? "hidden"
-                                    : `inline h-12 ${
-                                        isCorrect ||
-                                        isSkipped ||
-                                        retryAttempts === 2
-                                          ? "border-green-300"
-                                          : ""
-                                      }`
-                                }
-                                onChange={(e) => setSecondInput(e.target.value)}
-                                value={
-                                  isSkipped || retryAttempts === 2
-                                    ? correctAnswer
-                                    : secondInput ?? ""
-                                }
-                                disabled={retryAttempts !== 1}
-                                ref={secondInputRef}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") handleSubmit();
-                                }}
-                              />
-                            </motion.div>
-                          </AnimatePresence>
-
-                          {/* ✅ ❌ animation for second input */}
-                          <AnimatePresence mode="wait">
-                            {(isCorrect && retryAttempts === 1) ||
-                              isSkipped ||
-                              (retryAttempts === 2 && (
-                                <motion.div
-                                  key="check-2"
-                                  initial={{ opacity: 0, scale: 0 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500"
-                                >
-                                  <Check size={20} />
-                                </motion.div>
-                              ))}
-                            {!isCorrect &&
-                              retryAttempts === 0 &&
-                              !isSkipped && (
-                                <motion.div
-                                  key="x-2"
-                                  initial={{
-                                    opacity: 0,
-                                    scale: 0,
-                                    rotate: -45,
-                                  }}
-                                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                                  exit={{ opacity: 0, scale: 0, rotate: 45 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500"
-                                >
-                                  <X size={20} />
-                                </motion.div>
-                              )}
-                          </AnimatePresence>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div className="self-end">
-                    <Button onClick={handleSubmit}>Submit</Button>
+                            {choice}
+                          </ToggleGroupItem>
+                        )
+                      )}
+                    </ToggleGroup>
                     <Button
                       onClick={() => {
                         setisSkipped(true);
@@ -481,50 +556,12 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
                       {retryAttempts === 0 ? "Don't know?" : "Skip"}
                     </Button>
                   </div>
-                  {/* <Button onClick={getSummary}>GET summary</Button> */}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  <ToggleGroup
-                    type="single"
-                    value={userAnswer}
-                    className="grid grid-cols-2 gap-3"
-                  >
-                    {currentQuestion.choices.map(
-                      (choice: string, index: number) => (
-                        <ToggleGroupItem
-                          variant="outline"
-                          value={choice}
-                          aria-label={choice}
-                          key={index}
-                          onClick={() => setUserAnswer(choice)}
-                          className={
-                            renderChoices(choice) +
-                            " scroll-m-20 text-xl font-semibold tracking-tight p-6 "
-                          }
-                        >
-                          {choice}
-                        </ToggleGroupItem>
-                      )
-                    )}
-                  </ToggleGroup>
-                  <Button
-                    onClick={() => {
-                      setisSkipped(true);
-                      handleUnknown();
-                    }}
-                    variant="ghost"
-                    className="self-end"
-                  >
-                    {retryAttempts === 0 ? "Don't know?" : "Skip"}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      {/* <Button
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        {/* <Button
         className="fixed left-1/2 top-0"
         onClick={() => {
           const obj = questions.reduce((acc: any, item: any) => {
@@ -539,7 +576,9 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
       >
         Skip to round 2
       </Button> */}
-    </div>
+      </div>
+      // {/* </AuroraBackground> */}
+    </>
   );
 };
 

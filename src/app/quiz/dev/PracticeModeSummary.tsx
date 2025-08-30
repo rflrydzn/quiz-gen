@@ -66,7 +66,7 @@ const PracticeModeSummary = ({
   }, [isPerfect]);
 
   return (
-    <div className="m-10">
+    <div className="m-20">
       <Confetti
         ref={confettiRef}
         className="absolute left-0 top-0 z-0 size-full pointer-events-none"
