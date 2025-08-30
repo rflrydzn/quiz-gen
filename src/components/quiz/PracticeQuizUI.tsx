@@ -251,7 +251,6 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
     );
   return (
     <>
-      {/* <AuroraBackground> */}
       <div>
         <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
           {}
@@ -577,7 +576,6 @@ const PracticeQuizUI = ({ questions }: { questions: question[] }) => {
         Skip to round 2
       </Button> */}
       </div>
-      // {/* </AuroraBackground> */}
     </>
   );
 };
