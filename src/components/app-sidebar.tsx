@@ -93,7 +93,9 @@ export function AppSidebar() {
   const userData = {
     name: user?.user_metadata?.full_name ?? "Unknown",
     email: user?.email ?? "unknown@example.com",
-    avatar: user?.user_metadata?.avatar_url ?? "/default-avatar.png",
+    avatar:
+      user?.user_metadata?.avatar_url ??
+      "https://scontent.fcrk1-3.fna.fbcdn.net/v/t39.30808-6/500025423_1041108257991591_2936135239989154890_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=gOhwoTh3DbQQ7kNvwHclKPd&_nc_oc=AdlENBT0dHdzf9CZWBf0K8H-zHym5uR-iqNYtMKWj-QDjUAw6ayvbMeabVgs5xVc-Zw&_nc_zt=23&_nc_ht=scontent.fcrk1-3.fna&_nc_gid=HQeIYbRlPYn5Tb1dTn2k8g&oh=00_AfUsTcNUmoVzwwXumyTxL38aRdtHtTIgPXoKcCOqMB1Fsw&oe=68B9F328",
   };
 
   return (

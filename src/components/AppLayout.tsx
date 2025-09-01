@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { User } from "@supabase/supabase-js";
 
@@ -15,6 +15,7 @@ export function AppLayout({ children, user }: AppLayoutProps) {
   if (user) {
     return (
       <SidebarProvider>
+        <SidebarTrigger />
         <AppSidebar />
         <main className="flex-1">{children}</main>
       </SidebarProvider>
