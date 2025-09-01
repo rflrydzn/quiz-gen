@@ -11,7 +11,6 @@ import { Trash } from "lucide-react";
 import CreateQuiz from "@/components/CreateQuiz";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { AuroraBackground } from "@/components/ui/shadcn-io/aurora-background";
 
 type Quiz = {
   id: string;
