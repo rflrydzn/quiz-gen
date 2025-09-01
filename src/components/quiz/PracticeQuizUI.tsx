@@ -11,7 +11,6 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import PracticeModeSummary from "@/app/quiz/dev/PracticeModeSummary";
 import { question } from "@/types/types";
-import { AuroraBackground } from "../ui/shadcn-io/aurora-background";
 
 const PracticeQuizUI = ({
   questions,

@@ -16,7 +16,6 @@ import {
   User,
 } from "lucide-react";
 import { Share } from "lucide-react";
-import { AuroraBackground } from "../ui/shadcn-io/aurora-background";
 import Quiz from "../Quiz";
 import { Input } from "../ui/input";
 
