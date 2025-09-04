@@ -104,3 +104,13 @@ export type Material = {
   thumbnail: string;
   tags: string[];
 };
+
+export type QuizOptions = {
+  questionCounts: number;
+  quizStyle?: string;
+  questionTypes: string[];
+  difficulty: string;
+  fileUrl: string;
+  textContent: string;
+  distribution: { type: string; count: number }[];
+};

@@ -170,7 +170,10 @@ const DIYQuizSkeleton = () => {
         {/* Add Button */}
         <motion.div
           whileHover={{ scale: 1.1 }}
-          className="mt-4 w-6 h-6 bg-primary rounded-full flex items-center justify-center cursor-pointer"
+          className="
+    mt-4 w-6 h-6 bg-primary rounded-full flex items-center justify-center cursor-pointer
+    sm:hidden lg:flex
+  "
         >
           <span className="text-white text-xs font-bold">+</span>
         </motion.div>
@@ -263,7 +266,7 @@ const ProgressDonutSkeleton = () => {
 const ResponsiveSkeleton = () => {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-[280px] h-[560px] sm:w-[320px] sm:h-[640px] lg:w-[190px] lg:h-[380px]">
+      <div className="relative w-[280px] h-[400px] sm:w-[320px] sm:h-[640px] lg:w-[190px] lg:h-[380px] md:w-[160px] md:h-[320px]">
         {/* Smartphone Frame */}
         <div className="absolute inset-0 rounded-[3rem] border-4 border-gray-800 bg-black shadow-xl overflow-hidden">
           {/* Screen */}
@@ -306,7 +309,7 @@ const AICompanionSkeleton = () => {
       <motion.div
         initial={{ x: 50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="flex justify-end"
+        className="flex justify-en md:hidden"
       >
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl rounded-br-sm px-4 py-2 max-w-[75%]">
           <p className="text-xs">Explain photosynthesis in simple terms</p>
@@ -337,7 +340,7 @@ const AICompanionSkeleton = () => {
               />
             </div>
           ) : (
-            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 md:hidden">
               Photosynthesis is like cooking with sunlight! Plants use sun,
               water, and CO₂ to make food... 🌱
             </p>

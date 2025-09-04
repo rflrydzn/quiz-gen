@@ -8,19 +8,23 @@ import hero from "@/../public/hero.png";
 import Image from "next/image";
 import logo from "@/app/icon.png";
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
-import { Book, Sunset, Trees, Zap } from "lucide-react";
+import { Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Navbar1 } from "@/components/blocks/shadcnblocks-com-navbar1";
 import { BentoGridThirdDemo } from "@/components/BentoGrid";
 import Pricing from "@/components/ui/pricing";
 import { StackedCircularFooter as Footer } from "@/components/Footer";
 import { useRouter } from "next/navigation";
-
+import { SheetDemo } from "@/components/LiveDemo";
+import { question } from "@/types/types";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 const LandingPage = () => {
   const router = useRouter();
-  const handleTryDemo = () => {
-    alert("Loading demo experience...");
-  };
+  const [questions, setQuestions] = useState<question[] | null>(null);
 
   return (
     <div>
@@ -46,14 +50,21 @@ const LandingPage = () => {
 
         {/* Interactive Elements - scattered like Maze */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-24 left-[15%] pointer-events-auto">
-            <ExamCard />
+          <div className="absolute top-24 lg:top-1/2 xl:top-24 left-[5%] md:top-0 md:left-0 pointer-events-auto">
+            <ExamCard
+              question1={questions?.[2]}
+              question2={questions?.[3]}
+              hasQuestions={!!questions}
+            />
           </div>
-          <div className="absolute top-12 right-[20%] pointer-events-auto">
-            <Flashcard />
+          <div className="absolute top-12 lg:top-36 lg:right-[15%] right-[20%] pointer-events-auto xl:right-[10%]">
+            <Flashcard question={questions?.[0]} />
           </div>
           <div className="absolute bottom-32 right-[10%] pointer-events-auto">
-            <PracticePreview />
+            <PracticePreview
+              question={questions?.[1]}
+              hasQuestions={!!questions}
+            />
           </div>
         </div>
 
@@ -77,13 +88,18 @@ const LandingPage = () => {
               <ArrowRight className="h-4 w-4" />
               Get Started
             </Button>
-            <Button
+            {/* <Button
               variant="outline"
               className="flex items-center gap-2 hover:scale-105 transition-transform"
               disabled
             >
               Try Demo
-            </Button>
+            </Button> */}
+            <SheetDemo
+              onGenerate={(data) => {
+                setQuestions(data);
+              }}
+            />
           </div>
         </div>
       </div>
@@ -144,11 +160,12 @@ export default LandingPage;
 // ✅ Enhanced Interactive Cards
 //
 
-const Flashcard = () => {
+const Flashcard = ({ question }: { question: question | undefined }) => {
   const [flipped, setFlipped] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = () => {
+    if (!question) return;
     setFlipped(!flipped);
   };
 
@@ -169,15 +186,24 @@ const Flashcard = () => {
         transition={{ duration: 0.6, ease: "easeInOut" }}
       >
         {/* Front */}
-        <div className="absolute inset-0 bg-white border rounded-lg p-3 flex flex-col space-y-2 [backface-visibility:hidden]">
-          <TypingAnimation
-            duration={50}
-            className="font-medium text-gray-800 leading-relaxed text-sm"
-            text="The solar system contains exactly ______ planets."
-          />
-          <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 italic">
-            Click to reveal answer
-          </span>
+        <div className="absolute inset-0 bg-none border rounded-lg p-3 flex flex-col space-y-2 [backface-visibility:hidden]">
+          {question ? (
+            <>
+              <TypingAnimation
+                duration={50}
+                className="font-medium text-gray-800 leading-relaxed text-sm"
+                text={question.question}
+              />
+              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-gray-400 italic">
+                Click to reveal answer
+              </span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">
+              Click live demo to generate question
+            </span>
+          )}
+
           <div className="absolute top-2 right-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
           </div>
@@ -185,8 +211,10 @@ const Flashcard = () => {
         {/* Back */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3 flex items-center justify-center text-center [transform:rotateX(180deg)] [backface-visibility:hidden]">
           <div>
-            <p className="font-bold text-lg text-green-800">8 Planets</p>
-            <p className="text-xs text-green-600 mt-1">Click to flip back</p>
+            <p className="font-bold text-lg ">
+              {question?.answer ? question?.answer : "Click Try Demo"}
+            </p>
+            <p className="text-xs  mt-1">Click to flip back</p>
           </div>
         </div>
       </motion.div>
@@ -194,14 +222,25 @@ const Flashcard = () => {
   );
 };
 
-const PracticePreview = () => {
+const PracticePreview = ({
+  question,
+  hasQuestions,
+}: {
+  question: question | undefined;
+  hasQuestions: boolean;
+}) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [hasTried, setHasTried] = useState(false);
   const [showChoices, setShowChoices] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
-  const correctAnswer = "Mars";
-  const choices = ["Mercury", "Venus", "Earth", "Mars"];
+  const correctAnswer = question?.answer;
+  const choices = question?.choices ?? [
+    "Option A",
+    "Option B",
+    "Option C",
+    "Option D",
+  ];
 
   useEffect(() => {
     const delay = setTimeout(() => setShowChoices(true), 2000);
@@ -209,6 +248,7 @@ const PracticePreview = () => {
   }, []);
 
   const handleChoiceClick = (choice: string) => {
+    if (!question) return;
     if (hasTried) return;
 
     setSelected(choice);
@@ -237,11 +277,18 @@ const PracticePreview = () => {
       whileTap={{ scale: 0.98 }}
     >
       <div className="flex justify-between items-center">
-        <TypingAnimation
-          duration={50}
-          className="font-medium text-gray-800 text-sm"
-          text="Which planet is known as the Red Planet?"
-        />
+        {question ? (
+          <TypingAnimation
+            duration={50}
+            className="font-medium text-gray-800 text-sm"
+            text={question.question}
+          />
+        ) : (
+          <span className="text-muted-foreground text-xs">
+            Click Live Demo to see practice question
+          </span>
+        )}
+
         <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
       </div>
 
@@ -253,13 +300,13 @@ const PracticePreview = () => {
             exit={{ opacity: 0, y: -10 }}
             className="grid grid-cols-2 gap-2"
           >
-            {choices.map((choice, i) => {
+            {choices?.map((choice, i) => {
               const isSelected = selected === choice;
               const isCorrect = choice === correctAnswer;
               return (
                 <motion.button
                   key={choice}
-                  disabled={hasTried}
+                  disabled={hasTried || !hasQuestions}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleChoiceClick(choice);
@@ -267,10 +314,12 @@ const PracticePreview = () => {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1, duration: 0.3 }}
-                  whileHover={!hasTried ? { scale: 1.05 } : {}}
-                  whileTap={!hasTried ? { scale: 0.95 } : {}}
+                  whileHover={!hasTried && hasQuestions ? { scale: 1.05 } : {}}
+                  whileTap={!hasTried && hasQuestions ? { scale: 0.95 } : {}}
                   className={`flex justify-center items-center h-8 w-full rounded text-xs font-medium border transition-all duration-300 ${
-                    !selected
+                    !hasQuestions
+                      ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                      : !selected
                       ? "hover:bg-gray-100 text-gray-800 hover:border-gray-300"
                       : isSelected && isCorrect
                       ? "border-green-500 bg-green-50 text-green-700"
@@ -306,29 +355,52 @@ const PracticePreview = () => {
   );
 };
 
-const ExamCard = () => {
+const ExamCard = ({
+  question1,
+  question2,
+  hasQuestions,
+}: {
+  question1?: question;
+  question2?: question;
+  hasQuestions: boolean;
+}) => {
   const [showChoicesQ1, setShowChoicesQ1] = useState(false);
   const [showChoicesQ2, setShowChoicesQ2] = useState(false);
   const [typedText1, setTypedText1] = useState("");
   const [typedText2, setTypedText2] = useState("");
-  const [timeLeft, setTimeLeft] = useState(20 * 60);
-  const [selectedQ1, setSelectedQ1] = useState("");
+  const [timeLeft, setTimeLeft] = useState(5 * 60);
+  const [selectedQ1, setSelectedQ1] = useState<string>("");
   const [textAreaValue, setTextAreaValue] = useState("");
   const [isActive, setIsActive] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [aiFeedback, setAIFeedback] = useState<{
+    criteria: string;
+    grade: number;
+  } | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const q1 = "1. What is the largest planet in our solar system?";
-  const q2 = "2. Why is Jupiter considered a gas giant?";
+  const q1 =
+    hasQuestions && question1
+      ? question1.question
+      : "Click Live Demo to generate exam questions";
+  const q2 =
+    hasQuestions && question2
+      ? question2.question
+      : "Interactive exam mode will appear here";
 
   useEffect(() => {
     // Start timer when component mounts
-    const startTime = Date.now();
-    const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const remaining = 20 * 60 - elapsed;
-      setTimeLeft(remaining > 0 ? remaining : 0);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (isActive) {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = 5 * 60 - elapsed;
+        setTimeLeft(remaining > 0 ? remaining : 0);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [isActive]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -337,7 +409,7 @@ const ExamCard = () => {
   };
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive || !hasQuestions) return;
 
     let i = 0;
     const interval = setInterval(() => {
@@ -349,10 +421,10 @@ const ExamCard = () => {
       }
     }, 30);
     return () => clearInterval(interval);
-  }, [isActive]);
+  }, [isActive, hasQuestions]);
 
   useEffect(() => {
-    if (showChoicesQ1) {
+    if (showChoicesQ1 && hasQuestions) {
       let i = 0;
       const interval = setInterval(() => {
         setTypedText2(q2.slice(0, i + 1));
@@ -364,18 +436,53 @@ const ExamCard = () => {
       }, 30);
       return () => clearInterval(interval);
     }
-  }, [showChoicesQ1]);
+  }, [showChoicesQ1, hasQuestions]);
 
   const handleCardClick = () => {
-    if (!isActive) {
+    if (!isActive && hasQuestions) {
       setIsActive(true);
     }
   };
 
   const handleSubmit = () => {
-    alert(`Exam submitted!\nQ1: ${selectedQ1}\nQ2: ${textAreaValue}`);
+    getAIGradedScore();
+    setIsSubmitted(true);
   };
 
+  const getGrade = () => {
+    if (aiFeedback) {
+      const isQ1Correct = question1?.answer === selectedQ1;
+      let q1Score = Number(isQ1Correct);
+      return aiFeedback.grade + (q1Score * 100) / 2;
+    }
+  };
+
+  const getAIGradedScore = async () => {
+    setIsLoading(true);
+    const res = await fetch("/api/grade-answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: question2?.question,
+        userAnswer: textAreaValue,
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      console.error("Error generating quiz:", error);
+      return;
+    }
+    const data = await res.json();
+    console.log("ai", data);
+    setAIFeedback({
+      criteria: data?.criteria,
+      grade: data?.grade,
+    });
+    setShowSummary(true);
+    setIsLoading(false);
+    return data;
+  };
+  useEffect(() => console.log("selected", selectedQ1), [selectedQ1]);
   return (
     <motion.div
       className="border bg-white w-[300px] h-[400px] rounded-lg flex flex-col shadow-md cursor-pointer hover:shadow-lg transition-all duration-300"
@@ -387,71 +494,139 @@ const ExamCard = () => {
         <span className="text-xs font-medium text-gray-600">
           📝 Practice Exam
         </span>
-        <span className="text-xs font-medium text-gray-500">
-          ⏱ {formatTime(timeLeft)}
-        </span>
+        {aiFeedback ? (
+          <span className="text-xs font-medium">Grade: {getGrade()}%</span>
+        ) : (
+          <span
+            className={`text-xs font-medium ${
+              hasQuestions ? "text-gray-500" : "text-gray-400"
+            }`}
+          >
+            ⏱ {formatTime(timeLeft)}
+          </span>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {!isActive ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Click to start exam</p>
-              <div className="w-8 h-8 bg-blue-500 rounded-full mx-auto animate-pulse" />
+      {isLoading ? (
+        <>
+          <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+          <span>Grading your answer...</span>
+        </>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          {!hasQuestions ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <p className="text-sm text-gray-500 mb-2">
+                  Click Live Demo to generate
+                </p>
+                <p className="text-xs text-gray-400 mb-3">
+                  Practice exams will appear here
+                </p>
+                <div className="w-8 h-8 bg-gray-300 rounded-full mx-auto" />
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <div>
-              <p className="font-medium text-sm mb-2 text-left">{typedText1}</p>
-              {showChoicesQ1 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="space-y-2"
-                >
-                  {["Earth", "Mars", "Jupiter", "Venus"].map((choice, i) => (
-                    <motion.label
-                      key={i}
-                      className="flex items-center gap-2 border rounded px-2 py-1 text-xs text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+          ) : !isActive ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Click to start exam
+                </p>
+                <div className="w-8 h-8 bg-blue-500 rounded-full mx-auto animate-pulse" />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <p className="font-medium text-sm mb-2 text-left">
+                  {typedText1}
+                </p>
+                {showChoicesQ1 && question1 && hasQuestions && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-2"
+                  >
+                    {question1.choices.map((choice, i) => (
+                      <motion.label
+                        key={i}
+                        className={`${
+                          showSummary && choice === question1.answer
+                            ? "border-green-500 "
+                            : showSummary && selectedQ1 === choice
+                            ? " border-red-500"
+                            : ""
+                        } flex items-center gap-2 border rounded px-2 py-1 text-xs text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          disabled={isSubmitted || showSummary}
+                          type="radio"
+                          name="q1"
+                          value={choice}
+                          checked={selectedQ1 === choice}
+                          onChange={(e) => setSelectedQ1(e.target.value)}
+                          className="w-3 h-3 accent-blue-500"
+                        />
+                        {choice}
+                      </motion.label>
+                    ))}
+                    {/* {aiFeedback && (
+                      <div className="inline-block p-[1px] rounded-3xl bg-gradient-to-r from-pink-500 to-purple-500">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-3xl h-7 px-3 text-xs bg-white"
+                        >
+                          Explain this answer ⟡
+                        </Button>
+                      </div>
+                    )} */}
+                  </motion.div>
+                )}
+              </div>
+
+              <div>
+                <p className="font-medium text-sm mb-2 text-left">
+                  {typedText2}
+                </p>
+                {showChoicesQ2 && question2 && hasQuestions && (
+                  <>
+                    <motion.textarea
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      name="q2"
+                      placeholder="Write your answer..."
+                      value={textAreaValue}
+                      onChange={(e) => setTextAreaValue(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="radio"
-                        name="q1"
-                        value={choice}
-                        checked={selectedQ1 === choice}
-                        onChange={(e) => setSelectedQ1(e.target.value)}
-                        className="w-3 h-3 accent-blue-500"
-                      />
-                      {choice}
-                    </motion.label>
-                  ))}
-                </motion.div>
-              )}
-            </div>
+                      className="w-full h-16 border rounded bg-slate-50 text-xs text-gray-700 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
+                    />
+                    {aiFeedback ? (
+                      <div className="text-left">
+                        <p className="text-xs text-gray-700">
+                          AI graded your answer a{" "}
+                          <span className="font-bold">
+                            {aiFeedback.grade * 100}%.
+                          </span>{" "}
+                          {aiFeedback.criteria}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="lg:text-xs lg:text-muted-foreground">
+                          AI will grade you based on your answer.
+                        </span>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
 
-            <div>
-              <p className="font-medium text-sm mb-2 text-left">{typedText2}</p>
-              {showChoicesQ2 && (
-                <motion.textarea
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  name="q2"
-                  placeholder="Write your answer..."
-                  value={textAreaValue}
-                  onChange={(e) => setTextAreaValue(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-full h-16 border rounded bg-slate-50 text-xs text-gray-700 p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                />
-              )}
-            </div>
-
-            {showChoicesQ2 && (selectedQ1 || textAreaValue) && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -468,10 +643,10 @@ const ExamCard = () => {
                   Submit Exam
                 </Button>
               </motion.div>
-            )}
-          </>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };

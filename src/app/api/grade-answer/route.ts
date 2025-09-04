@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         question +
         ". The user's answer is: " +
         userAnswer +
-        ". Provide a score from 0 to 1 based on correctness and relevance. Include a brief explanation of the grading criteria used.",
+        ". Provide a score from 0 to 1 based on correctness and relevance. Include a brief explanation of the grading criteria used. 1 sentence",
       config: {
         responseMimeType: "application/json",
         responseSchema: {
