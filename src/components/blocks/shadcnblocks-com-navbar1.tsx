@@ -149,7 +149,7 @@ const Navbar1 = ({
   const router = useRouter();
 
   return (
-    <section className="py-4">
+    <section className="p-4">
       <div className="container">
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">

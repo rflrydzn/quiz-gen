@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "@/lib/utils"; // Optional utility if using clsx or cn for class merging
+import Link from "next/link";
 
 const PRICING_BREAKPOINTS = [
   { maxTokens: 0, price: 0 },
@@ -127,12 +128,12 @@ ${price} `}
               ? "Need more than 1,000 tokens a month for your org or class? Contact us for custom pricing."
               : "Pay only for the tokens you use—no monthly fees. Study smarter without worrying about unused subscriptions."}
           </p>
-          <a
-            href="https://app.loops.so/register"
+          <Link
+            href="/login"
             className="mt-8 inline-block bg-black text-white px-6 py-3 rounded-md font-semibold text-sm"
           >
             {price === null ? "Contact us" : "Get started"}
-          </a>
+          </Link>
         </div>
       </div>
     </section>

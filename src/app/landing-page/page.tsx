@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import hero from "@/../public/hero.png";
+import heroFone from "@/../public/hero-fone.png";
 import Image from "next/image";
 import logo from "@/app/icon.png";
 import { AnimatedGridPattern } from "@/components/magicui/animated-grid-pattern";
@@ -22,94 +23,97 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 const LandingPage = () => {
   const router = useRouter();
   const [questions, setQuestions] = useState<question[] | null>(null);
+  const slides = [
+    {
+      id: "exam",
+      element: (
+        <ExamCard
+          question1={questions?.[2]}
+          question2={questions?.[3]}
+          hasQuestions={!!questions}
+        />
+      ),
+    },
+    {
+      id: "practice",
+      element: (
+        <PracticePreview question={questions?.[1]} hasQuestions={!!questions} />
+      ),
+    },
+    { id: "flashcard", element: <Flashcard question={questions?.[0]} /> },
+  ];
 
   return (
     <div>
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <Navbar1 {...demoData} />
-      </div>
+      </header>
 
-      {/* Hero Section */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen text-center px-4">
-        <AnimatedGridPattern
-          numSquares={200}
-          maxOpacity={0.3}
-          duration={3}
-          repeatDelay={1}
-          className={cn(
-            "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-            "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12"
-          )}
-        />
-        {/* Background */}
-        {/* <BackgroundGrid /> */}
+      <main>
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center text-center px-4 py-28 relative">
+          <AnimatedGridPattern
+            numSquares={200}
+            maxOpacity={0.3}
+            duration={3}
+            repeatDelay={1}
+            className={cn(
+              "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+              "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12"
+            )}
+          />
+          {/* Text Section */}
+          <div className="max-w-2xl relative z-10 mb-12">
+            <h1 className="text-6xl font-extrabold tracking-tight mb-6">
+              Everything You Need to Ace Your Exams
+            </h1>
+            <p className="max-w-xl mx-auto text-muted-foreground text-lg mb-8">
+              Create smarter quizzes, track your progress, and study with
+              confidence—all in one place.
+            </p>
 
-        {/* Interactive Elements - scattered like Maze */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-24 lg:top-1/2 xl:top-24 left-[5%] md:top-0 md:left-0 pointer-events-auto">
-            <ExamCard
-              question1={questions?.[2]}
-              question2={questions?.[3]}
-              hasQuestions={!!questions}
-            />
+            <div className="flex justify-center gap-4">
+              <Button
+                className="flex items-center gap-2 hover:scale-105 transition-transform"
+                onClick={() => router.push("/login")}
+              >
+                <ArrowRight className="h-4 w-4" />
+                Get Started
+              </Button>
+              <SheetDemo onGenerate={(data) => setQuestions(data)} />
+            </div>
           </div>
-          <div className="absolute top-12 lg:top-36 lg:right-[15%] right-[20%] pointer-events-auto xl:right-[10%]">
-            <Flashcard question={questions?.[0]} />
-          </div>
-          <div className="absolute bottom-32 right-[10%] pointer-events-auto">
-            <PracticePreview
-              question={questions?.[1]}
-              hasQuestions={!!questions}
-            />
-          </div>
-        </div>
 
-        {/* Text Section */}
-        <div className="max-w-2xl relative z-10 mb-12">
-          <h1 className="scroll-m-20 text-6xl font-extrabold tracking-tight text-balance mb-6">
-            Everything You Need to Ace Your Exams
-          </h1>
-          <p className="max-w-xl mx-auto text-muted-foreground text-lg mb-8">
-            Create smarter quizzes, track your progress, and study with
-            confidence—all in one place.
-          </p>
+          <Carousel
+            className={`${
+              questions ? "inline " : "hidden "
+            } mb-7 w-full max-w-xs xl:hidden`}
+          >
+            <CarouselContent>
+              {slides.map((e) => (
+                <CarouselItem key={e.id}>
+                  <div className="p-1 flex items-center justify-center h-full">
+                    {e.element}
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
 
-          <div className="flex justify-center gap-4">
-            <Button
-              className="flex items-center gap-2 hover:scale-105 transition-transform"
-              onClick={() => {
-                router.push("/login");
-              }}
-            >
-              <ArrowRight className="h-4 w-4" />
-              Get Started
-            </Button>
-            {/* <Button
-              variant="outline"
-              className="flex items-center gap-2 hover:scale-105 transition-transform"
-              disabled
-            >
-              Try Demo
-            </Button> */}
-            <SheetDemo
-              onGenerate={(data) => {
-                setQuestions(data);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Image Section with Smooth Fade */}
-      <div className="relative -mt-20">
-        {/* Gradient overlay for smooth transition */}
-        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white to-transparent z-10" />
-
-        <div className="flex justify-center items-center py-8 bg-gray-50/50">
+          {/* Screenshot */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -121,35 +125,67 @@ const LandingPage = () => {
               src={hero}
               alt="Hero Image"
               width={900}
-              className="border rounded-lg shadow-2xl"
+              className="hidden sm:block border rounded-lg shadow-2xl"
             />
-            {/* Subtle glow effect */}
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-blue-500/10 to-transparent pointer-events-none" />
+
+            {/* Small screens (sm and below) */}
+            <Image
+              src={heroFone}
+              alt="Hero Mobile Image"
+              width={400}
+              className="block sm:hidden border rounded-lg shadow-2xl"
+            />
           </motion.div>
+        </section>
+
+        <section className=" p-24 space-y-7">
+          <div>
+            <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
+              🔑 Tools That Work for You
+            </h1>
+            <p className="text-center leading-7 ">
+              From smart quizzes to progress tracking, explore features designed
+              to make studying easier.
+            </p>
+          </div>
+
+          <BentoGridThirdDemo />
+        </section>
+
+        <section>
+          <Pricing />
+        </section>
+
+        <Footer />
+
+        <div className="absolute inset-0 pointer-events-none hidden xl:inline">
+          <div className="absolute pointer-events-auto xl:top-28 xl:left-8 ">
+            <ExamCard
+              question1={questions?.[2]}
+              question2={questions?.[3]}
+              hasQuestions={!!questions}
+            />
+          </div>
+          <div className="absolute pointer-events-auto xl:right-8 xl:top-28">
+            <Flashcard question={questions?.[0]} />
+          </div>
+          <div className="absolute pointer-events-auto xl:right-20 xl:top-80">
+            <PracticePreview
+              question={questions?.[1]}
+              hasQuestions={!!questions}
+            />
+          </div>
         </div>
+      </main>
 
-        {/* Bottom fade for smooth visual end */}
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-10" />
-      </div>
+      {/* Hero Image Section with Smooth Fade */}
+      {/* <div className=""> */}
+      {/* Gradient overlay for smooth transition */}
+      {/* <div className=" border-2" /> */}
 
-      <div className=" p-24 space-y-7">
-        <div>
-          <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
-            🔑 Tools That Work for You
-          </h1>
-          <p className="text-center leading-7 ">
-            From smart quizzes to progress tracking, explore features designed
-            to make studying easier.
-          </p>
-        </div>
-
-        <BentoGridThirdDemo />
-      </div>
-
-      <div>
-        <Pricing />
-      </div>
-      <Footer />
+      {/* Bottom fade for smooth visual end */}
+      {/* <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent z-10" /> */}
+      {/* </div> */}
     </div>
   );
 };
@@ -179,9 +215,9 @@ const Flashcard = ({ question }: { question: question | undefined }) => {
       whileTap={{ scale: 0.95 }}
     >
       <motion.div
-        className={`relative w-[250px] h-[150px] [transform-style:preserve-3d] transition-all duration-500 ${
+        className={`relative w-[250px] h-[150px] [transform-style:preserve-3d] transition-all duration-100 ${
           flipped ? "[transform:rotateX(180deg)]" : ""
-        } ${isHovered ? "shadow-lg" : "shadow-md"}`}
+        } ${isHovered ? "shadow-md" : ""}`}
         animate={{ rotateX: flipped ? 180 : 0 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
       >
@@ -517,7 +553,7 @@ const ExamCard = ({
           {!hasQuestions ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <p className="text-sm text-gray-500 mb-2">
+                <p className="text-muted-foreground text-xs mb-2">
                   Click Live Demo to generate
                 </p>
                 <p className="text-xs text-gray-400 mb-3">

@@ -18,6 +18,7 @@ import {
 import { Share } from "lucide-react";
 import Quiz from "../Quiz";
 import { Input } from "../ui/input";
+import { SidebarTrigger } from "../ui/sidebar";
 
 // Mock data for materials - replace with your actual data structure
 // Mock data for materials - generic placeholders
@@ -173,9 +174,12 @@ function QuizletView({
       <div className="bg-white  border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 truncate">
-              {title}
-            </h1>
+            <div className="flex items-center justify-center">
+              <SidebarTrigger className="md:hidden" />
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-gray-900 truncate">
+                {title}
+              </h1>
+            </div>
 
             <div className="hidden md:block flex-1 max-w-md mx-8">
               <div className="relative">

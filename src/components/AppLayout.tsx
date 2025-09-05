@@ -15,7 +15,7 @@ export function AppLayout({ children, user }: AppLayoutProps) {
   if (user) {
     return (
       <SidebarProvider>
-        <SidebarTrigger />
+        {/* <SidebarTrigger /> */}
         <AppSidebar />
         <main className="flex-1">{children}</main>
       </SidebarProvider>

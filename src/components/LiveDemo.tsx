@@ -14,6 +14,13 @@ import { useState } from "react";
 import { question, QuizOptions } from "@/types/types";
 import { Loader2Icon } from "lucide-react";
 
+type QuizQuestion = {
+  type: "Fill in the Blank" | "Multiple Choice" | "Open-Ended"; // matches your order array
+  question: string;
+  choices?: string[]; // only if multiple choice
+  answer: string | string[];
+};
+
 export function SheetDemo({
   onGenerate,
 }: {
@@ -64,7 +71,7 @@ export function SheetDemo({
         "Open-Ended",
       ];
 
-      const sorted = data.sort((a: any, b: any) => {
+      const sorted = data.sort((a: QuizQuestion, b: QuizQuestion) => {
         return order.indexOf(a.type) - order.indexOf(b.type);
       });
 
