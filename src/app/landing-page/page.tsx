@@ -138,7 +138,7 @@ const LandingPage = () => {
           </motion.div>
         </section>
 
-        <section className=" p-24 space-y-7">
+        <section id="features" className=" p-24 space-y-7">
           <div>
             <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
               🔑 Tools That Work for You
@@ -152,8 +152,25 @@ const LandingPage = () => {
           <BentoGridThirdDemo />
         </section>
 
-        <section>
+        <section id="pricing">
           <Pricing />
+        </section>
+
+        <section id="about" className="py-16 bg-gray-50 dark:bg-gray-900">
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h2 className="text-3xl font-bold">About This Project</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              This is a side project I built to make studying a little easier
+              for students. Preparing for exams can be stressful, so I wanted to
+              create a simple tool that generates quizzes, tracks progress, and
+              helps you focus on learning — without paying monthly fees.
+            </p>
+            <p className="text-md text-gray-500 dark:text-gray-400">
+              It’s not a big company, just me experimenting and improving it as
+              I go. If you try it out and have feedback, I’d really love to hear
+              from you!
+            </p>
+          </div>
         </section>
 
         <Footer />
@@ -701,27 +718,28 @@ const demoData = {
     },
     {
       title: "Features",
-      url: "#",
-    },
-    {
-      title: "About",
-      url: "#",
+      url: "#features",
     },
     {
       title: "Pricing",
-      url: "/pricing",
+      url: "#pricing",
     },
     {
-      title: "Blog",
-      url: "/blog",
+      title: "About",
+      url: "#about",
     },
+
+    // {
+    //   title: "Blog",
+    //   url: "/blog",
+    // },
   ],
-  mobileExtraLinks: [
-    { name: "Press", url: "/press" },
-    { name: "Contact", url: "/contact" },
-    { name: "Imprint", url: "/imprint" },
-    { name: "Sitemap", url: "/sitemap" },
-  ],
+  // mobileExtraLinks: [
+  //   { name: "Press", url: "/press" },
+  //   { name: "Contact", url: "/contact" },
+  //   { name: "Imprint", url: "/imprint" },
+  //   { name: "Sitemap", url: "/sitemap" },
+  // ],
   auth: {
     login: { text: "Log in", url: "/login" },
     signup: { text: "Sign up", url: "/signup" },

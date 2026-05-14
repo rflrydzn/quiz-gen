@@ -11,6 +11,7 @@ import { Trash } from "lucide-react";
 import CreateQuiz from "@/components/CreateQuiz";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 type Quiz = {
   id: string;
@@ -101,9 +102,13 @@ export default function MyQuizzes() {
     // <AuroraBackground showRadialGradient={false}>
     <div className="py-16 px-12 max-w-4xl mx-auto h-screen overflow-hidden">
       <div className="justify-between flex ">
-        <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
-          Your Quizzes
-        </h1>
+        <div className="flex items-center justify-center">
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="scroll-m-20  text-4xl font-extrabold tracking-tight text-balance">
+            Your Quizzes
+          </h1>
+        </div>
+
         <CreateQuiz />
       </div>
 

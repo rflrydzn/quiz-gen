@@ -135,12 +135,12 @@ const Navbar1 = ({
       url: "#",
     },
   ],
-  mobileExtraLinks = [
-    { name: "Press", url: "#" },
-    { name: "Contact", url: "#" },
-    { name: "Imprint", url: "#" },
-    { name: "Sitemap", url: "#" },
-  ],
+  // mobileExtraLinks = [
+  //   { name: "Press", url: "#" },
+  //   { name: "Contact", url: "#" },
+  //   { name: "Imprint", url: "#" },
+  //   { name: "Sitemap", url: "#" },
+  // ],
   auth = {
     login: { text: "Log in", url: "/login" },
     signup: { text: "Sign up", url: "#" },
@@ -206,7 +206,7 @@ const Navbar1 = ({
                   >
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
-                  <div className="border-t py-4">
+                  {/* <div className="border-t py-4">
                     <div className="grid grid-cols-2 justify-start">
                       {mobileExtraLinks.map((link, idx) => (
                         <a
@@ -218,7 +218,7 @@ const Navbar1 = ({
                         </a>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
                   <div className="flex flex-col gap-3">
                     <Button asChild variant="outline">
                       <a href={auth.login.url}>{auth.login.text}</a>
@@ -275,7 +275,7 @@ const renderMenuItem = (item: MenuItem) => {
   return (
     <a
       key={item.title}
-      className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
+      className="group inline-flex h-10 w-max items-center justify-center rounded-md  px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-accent-foreground"
       href={item.url}
     >
       {item.title}
